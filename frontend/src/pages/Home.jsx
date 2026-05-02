@@ -1,176 +1,325 @@
-import { useNavigate } from "react-router-dom";
-import { useUpload } from "../hooks/useUpload";
-import UploadBox from "../components/UploadBox";
-import { Toaster } from "react-hot-toast";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { UploadBox } from '../components/UploadBox';
 
-export default function Home() {
+export const Home = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { step, progress, process, error } = useUpload();
+  const [showMenu, setShowMenu] = useState(false);
 
-  const handleUpload = async (file, opts) => {
-    const data = await process(file, opts);
-    if (data) {
-      navigate("/result", { state: { result: data.analysis, contractText: data.contractText } });
-    }
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setShowMenu(false);
   };
 
   return (
-    <div style={styles.page}>
-      <Toaster position="top-right" toastOptions={{ style: { background: "#1e2635", color: "#e8eaf0", border: "1px solid #2a3040" } }} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">IX</span>
+              </div>
+              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                Legal-Gurdian
+              </h1>
+            </div>
 
-      {/* Background */}
-      <div style={styles.bg}>
-        <div style={styles.glow1} />
-        <div style={styles.glow2} />
-        <div style={styles.grid} />
-      </div>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              <button
+                onClick={() => navigate('/')}
+                className="text-gray-600 hover:text-gray-900 font-medium transition"
+              >
+                Dashboard
+              </button>
+              {user && (
+                <>
+                  <button
+                    onClick={() => navigate('/history')}
+                    className="text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    History
+                  </button>
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    Profile
+                  </button>
+                </>
+              )}
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="hidden sm:block">
+                      <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="text-gray-600 hover:text-gray-900 font-medium transition"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
+            </nav>
 
-      {/* Nav */}
-      <nav style={styles.nav}>
-        <div style={styles.logo}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" stroke="#22c55e" strokeWidth="1.5" fill="rgba(34,197,94,0.1)" />
-            <path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span style={styles.logoText}>Legal Guardian</span>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {showMenu && (
+            <div className="md:hidden pb-4 border-t border-gray-200">
+              <button
+                onClick={() => handleNavigation('/')}
+                className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
+              >
+                Dashboard
+              </button>
+              {user && (
+                <>
+                  <button
+                    onClick={() => handleNavigation('/history')}
+                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
+                  >
+                    History
+                  </button>
+                  <button
+                    onClick={() => handleNavigation('/profile')}
+                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
+                  >
+                    Profile
+                  </button>
+                </>
+              )}
+              {user ? (
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium"
+                >
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleNavigation('/login')}
+                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => handleNavigation('/signup')}
+                    className="block w-full text-left px-4 py-2 text-indigo-600 hover:bg-indigo-50 font-medium"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
-        <a href="https://github.com" style={styles.navLink} target="_blank" rel="noopener noreferrer">
-          GitHub
-        </a>
-      </nav>
+      </header>
 
-      {/* Hero */}
-      <main style={styles.main}>
-        <div style={styles.hero}>
-          <div style={styles.pill}>AI-Powered Contract Analysis</div>
-
-          <h1 style={styles.h1}>
-            Understand any contract
-            <br />
-            <span style={styles.accent}>before you sign.</span>
-          </h1>
-
-          <p style={styles.subtitle}>
-            Upload your PDF. Get a plain-language summary, risk score,
-            <br /> highlighted clauses, and follow-up Q&A — in seconds.
-          </p>
-
-          <div style={styles.features}>
-            {["📄 PDF Upload", "🧠 AI Analysis", "📊 Risk Score", "💬 AI Chat", "🌍 Multi-language"].map((f) => (
-              <span key={f} style={styles.feature}>{f}</span>
-            ))}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Welcome Section */}
+        <div className="mb-12">
+          <div className="text-center">
+            {user ? (
+              <>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                  Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{user?.name}</span>
+                </h2>
+                <p className="text-xl text-gray-600 mb-8">
+                  Upload and analyze your documents with AI-powered insights
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                  Analyze Documents with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">AI</span>
+                </h2>
+                <p className="text-xl text-gray-600 mb-8">
+                  Upload and analyze your documents instantly. No account needed to get started!
+                </p>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Upload Card */}
-        <div style={styles.uploadCard}>
-          <div style={styles.uploadHeader}>
-            <h2 style={styles.uploadTitle}>Analyze your contract</h2>
-            <p style={styles.uploadSub}>No login required. Your document is never stored.</p>
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition">
+            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Upload Documents</h3>
+            <p className="text-gray-600">Drag and drop or browse to upload PDF, TXT, or Word documents</p>
           </div>
-          <UploadBox onUpload={handleUpload} step={step} progress={progress} />
-          {error && <p style={styles.error}>{error}</p>}
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition">
+            <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">AI Analysis</h3>
+            <p className="text-gray-600">Get instant insights with our advanced AI models</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition">
+            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Results & Reports</h3>
+            <p className="text-gray-600">Download comprehensive analysis reports</p>
+          </div>
+        </div>
+
+        {/* Upload Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Analyze Your Document</h3>
+          <p className="text-gray-600 mb-8">Start by uploading a document for analysis</p>
+          <UploadBox />
+        </div>
+
+        {/* Info Section */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* How It Works */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-200">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">How It Works</h4>
+            <ol className="space-y-3 text-gray-700">
+              <li className="flex gap-3">
+                <span className="font-bold text-indigo-600">1.</span>
+                <span>Upload your document (PDF, TXT, or Word)</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-indigo-600">2.</span>
+                <span>Our AI analyzes the content</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-indigo-600">3.</span>
+                <span>Get insights, summary, and risk assessment</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-indigo-600">4.</span>
+                <span>Download your analysis report</span>
+              </li>
+            </ol>
+          </div>
+
+          {/* Supported Formats */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-8 border border-purple-200">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">Supported Formats</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="text-gray-700">PDF Files</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="text-gray-700">Text Files (.txt)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="text-gray-700">Word Documents</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="text-gray-700">Rich Text Files</span>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 
-      {/* Footer stats */}
-      <div style={styles.stats}>
-        {[["10MB", "Max file size"], ["3 languages", "English, Hindi, Bengali"], ["0–10", "Risk scale"], ["Free", "No account needed"]].map(([val, label]) => (
-          <div key={label} style={styles.stat}>
-            <p style={styles.statVal}>{val}</p>
-            <p style={styles.statLabel}>{label}</p>
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 mt-16 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h4 className="font-bold text-white mb-4">Legal-Tech</h4>
+              <p className="text-sm">AI-Powered Document Analysis Platform</p>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-4">Product</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white transition">Features</a></li>
+                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition">Docs</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-4">Company</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white transition">About</a></li>
+                <li><a href="#" className="hover:text-white transition">Blog</a></li>
+                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white transition">Privacy</a></li>
+                <li><a href="#" className="hover:text-white transition">Terms</a></li>
+                <li><a href="#" className="hover:text-white transition">Security</a></li>
+              </ul>
+            </div>
           </div>
-        ))}
-      </div>
-
-      <style>{`
-        @keyframes float1 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(30px, -20px); }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-20px, 30px); }
-        }
-      `}</style>
+          <div className="border-t border-gray-800 pt-8 flex justify-between items-center">
+            <p className="text-sm">&copy; 2026 Legal-Tech. All rights reserved.</p>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-white transition">Twitter</a>
+              <a href="#" className="hover:text-white transition">LinkedIn</a>
+              <a href="#" className="hover:text-white transition">GitHub</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
-}
-
-const styles = {
-  page: {
-    minHeight: "100vh", display: "flex", flexDirection: "column",
-    alignItems: "center", position: "relative", overflow: "hidden",
-  },
-  bg: { position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" },
-  glow1: {
-    position: "absolute", width: "500px", height: "500px",
-    borderRadius: "50%", background: "radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)",
-    top: "-100px", left: "-100px", animation: "float1 10s ease-in-out infinite",
-  },
-  glow2: {
-    position: "absolute", width: "400px", height: "400px",
-    borderRadius: "50%", background: "radial-gradient(circle, rgba(96,165,250,0.06) 0%, transparent 70%)",
-    bottom: "-100px", right: "-50px", animation: "float2 12s ease-in-out infinite",
-  },
-  grid: {
-    position: "absolute", inset: 0,
-    backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-    backgroundSize: "48px 48px",
-  },
-  nav: {
-    width: "100%", maxWidth: "1100px", padding: "24px 32px",
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    position: "relative", zIndex: 10,
-  },
-  logo: { display: "flex", alignItems: "center", gap: "10px" },
-  logoText: { fontFamily: "'DM Serif Display', serif", fontSize: "20px", color: "#e8eaf0" },
-  navLink: {
-    color: "#6b7280", fontSize: "14px", textDecoration: "none",
-    padding: "6px 16px", borderRadius: "8px", border: "1px solid #2a3040",
-    transition: "all 0.15s",
-  },
-  main: {
-    flex: 1, width: "100%", maxWidth: "1100px", padding: "40px 32px",
-    display: "flex", flexDirection: "column", alignItems: "center", gap: "48px",
-    position: "relative", zIndex: 10,
-  },
-  hero: { textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" },
-  pill: {
-    padding: "6px 16px", borderRadius: "100px", fontSize: "12px",
-    fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em",
-    background: "rgba(34, 197, 94, 0.1)", color: "#22c55e",
-    border: "1px solid rgba(34, 197, 94, 0.25)",
-  },
-  h1: {
-    fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px, 5vw, 64px)",
-    lineHeight: 1.15, color: "#e8eaf0", fontWeight: 400,
-  },
-  accent: { color: "#22c55e" },
-  subtitle: { color: "#6b7280", fontSize: "16px", lineHeight: 1.7, maxWidth: "520px" },
-  features: { display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" },
-  feature: {
-    padding: "5px 12px", borderRadius: "8px", fontSize: "13px",
-    background: "rgba(255,255,255,0.04)", color: "#9ca3af",
-    border: "1px solid #2a3040",
-  },
-  uploadCard: {
-    width: "100%", maxWidth: "540px",
-    background: "rgba(17, 24, 39, 0.9)", backdropFilter: "blur(20px)",
-    border: "1px solid #1f2937", borderRadius: "24px", padding: "32px",
-    display: "flex", flexDirection: "column", gap: "24px",
-    boxShadow: "0 40px 80px rgba(0,0,0,0.4)",
-  },
-  uploadHeader: { display: "flex", flexDirection: "column", gap: "6px" },
-  uploadTitle: { fontFamily: "'DM Serif Display', serif", fontSize: "22px", color: "#e8eaf0", fontWeight: 400 },
-  uploadSub: { color: "#6b7280", fontSize: "13px" },
-  error: { color: "#f87171", fontSize: "13px", textAlign: "center" },
-  stats: {
-    width: "100%", maxWidth: "1100px", padding: "24px 32px 48px",
-    display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "32px",
-    position: "relative", zIndex: 10,
-  },
-  stat: { textAlign: "center" },
-  statVal: { fontFamily: "'DM Serif Display', serif", fontSize: "24px", color: "#22c55e" },
-  statLabel: { color: "#4a5568", fontSize: "12px", fontFamily: "'DM Mono', monospace", marginTop: "4px" },
 };

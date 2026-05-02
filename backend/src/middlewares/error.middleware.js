@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
   console.error("❌ Error:", err.message);
+  console.log(err);
 
   // Multer errors
   if (err.code === "LIMIT_FILE_SIZE") {

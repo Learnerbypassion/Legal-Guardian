@@ -1,4 +1,5 @@
 const { extractAndClean } = require("../services/parser.service");
+const Document = require("../models/document.model");
 
 /**
  * POST /api/upload
@@ -12,7 +13,7 @@ const uploadPDF = async (req, res, next) => {
 
     const { buffer, originalname } = req.file;
     const { rawText, cleanedText, charCount } = await extractAndClean(buffer);
-
+    console.log(cleanedText);
     res.status(200).json({
       success: true,
       filename: originalname,
@@ -25,4 +26,38 @@ const uploadPDF = async (req, res, next) => {
   }
 };
 
-module.exports = { uploadPDF };
+/**
+ * GET /api/upload/documents
+ * Get authenticated user's document history
+ * Returns list of documents with analysis results
+ */
+const getUserDocuments = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: "User not authenticated",
+      });
+    }
+
+    // Fetch all documents for this user, sorted by creation date (newest first)
+    const documents = await Document.find({ userId })
+      .sort({ createdAt: -1 })
+      .select(
+        "_id filename createdAt summary pros cons overallAdvice riskScore contractType"
+      );
+
+    res.status(200).json({
+      success: true,
+      data: documents,
+      message: "User documents retrieved successfully",
+    });
+  } catch (error) {
+    console.error("❌ Get documents error:", error.message);
+    next(error);
+  }
+};
+
+module.exports = { uploadPDF, getUserDocuments };

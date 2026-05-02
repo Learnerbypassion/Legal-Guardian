@@ -1,212 +1,314 @@
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDropzone } from 'react-dropzone';
+import { useAuth } from '../context/AuthContext';
+import Cookies from 'js-cookie';
 
-const LANGUAGES = ["English", "Hindi", "Bengali"];
+const LANGUAGES = ['English', 'Hindi', 'Bengali'];
 const USER_TYPES = [
-  { value: "general", label: "General" },
-  { value: "freelancer", label: "Freelancer" },
-  { value: "business", label: "Business Owner" },
-  { value: "student", label: "Student" },
+  { value: 'general', label: 'General' },
+  { value: 'freelancer', label: 'Freelancer' },
+  { value: 'business', label: 'Business Owner' },
+  { value: 'student', label: 'Student' },
 ];
 
-export default function UploadBox({ onUpload, step, progress }) {
-  const [language, setLanguage] = useState("English");
-  const [userType, setUserType] = useState("general");
+export const UploadBox = () => {
+  const { user } = useAuth();
+  const [language, setLanguage] = useState('English');
+  const [userType, setUserType] = useState('general');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const onDrop = useCallback((accepted) => {
-    if (accepted[0]) setSelectedFile(accepted[0]);
+    if (accepted[0]) {
+      setSelectedFile(accepted[0]);
+      setError(null);
+    }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "application/pdf": [".pdf"] },
+    accept: { 
+      'application/pdf': ['.pdf'],
+      'text/plain': ['.txt'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    },
     maxFiles: 1,
-    disabled: step === "uploading" || step === "analyzing",
+    disabled: uploading,
+    maxSize: 10 * 1024 * 1024, // 10MB
   });
 
-  const handleSubmit = () => {
-    if (selectedFile) onUpload(selectedFile, { language, userType });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedFile) {
+      setError('Please select a file');
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 45) {
+            clearInterval(progressInterval);
+            return 45;
+          }
+          return prev + Math.random() * 20;
+        });
+      }, 200);
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('contract', selectedFile);
+      formData.append('language', language);
+      formData.append('userType', userType);
+
+      // Get token from cookie (optional for unauthenticated users)
+      const token = Cookies.get('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      // Step 1: Upload file
+      const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+        method: 'POST',
+        headers: headers,
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const uploadData = await uploadResponse.json();
+      setProgress(50);
+
+      // Step 2: Analyze the contract
+      const analyzeResponse = await fetch(`${import.meta.env.VITE_API_URL}/ai/analyze`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contractText: uploadData.contractText,
+          filename: uploadData.filename,
+          charCount: uploadData.charCount,
+          language: language,
+          userType: userType
+        })
+      });
+
+      clearInterval(progressInterval);
+
+      if (!analyzeResponse.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const analysisData = await analyzeResponse.json();
+      setProgress(100);
+
+      // Navigate to result page with analysis
+      // Mark if this is from unauthenticated user
+      navigate('/result', { 
+        state: { 
+          result: analysisData,
+          fileName: uploadData.filename,
+          documentId: uploadData.documentId,
+          isUnauthenticated: !user,
+          contractText: uploadData.contractText
+        } 
+      });
+    } catch (err) {
+      setError(err.message || 'Upload or analysis failed. Please try again.');
+      setUploading(false);
+      setProgress(0);
+    }
   };
 
-  const isLoading = step === "uploading" || step === "analyzing";
-
   return (
-    <div style={styles.wrapper}>
+    <div className="space-y-6">
       {/* Drop Zone */}
       <div
         {...getRootProps()}
-        style={{
-          ...styles.dropzone,
-          borderColor: isDragActive ? "#4ade80" : selectedFile ? "#22c55e" : "#2a3040",
-          background: isDragActive ? "rgba(74, 222, 128, 0.05)" : "rgba(20, 25, 38, 0.8)",
-        }}
+        className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+          isDragActive
+            ? 'border-indigo-500 bg-indigo-50'
+            : selectedFile
+            ? 'border-green-500 bg-green-50'
+            : 'border-gray-300 bg-gray-50 hover:border-indigo-400'
+        } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
-        <div style={styles.dropContent}>
-          <div style={styles.iconRing}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedFile ? "#22c55e" : "#4a5568"} strokeWidth="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="18" x2="12" y2="12" />
-              <line x1="9" y1="15" x2="15" y2="15" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+            <svg
+              className={`w-8 h-8 ${
+                selectedFile ? 'text-green-600' : 'text-gray-400'
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           </div>
+
           {selectedFile ? (
             <>
-              <p style={styles.filename}>{selectedFile.name}</p>
-              <p style={styles.filesize}>
-                {(selectedFile.size / 1024).toFixed(1)} KB — Click to change
-              </p>
+              <div>
+                <p className="font-semibold text-gray-900">{selectedFile.name}</p>
+                <p className="text-sm text-gray-500">
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+              <p className="text-xs text-gray-500">Click to change file</p>
             </>
           ) : (
             <>
-              <p style={styles.dropText}>
-                {isDragActive ? "Drop your contract here" : "Drag & drop your contract PDF"}
-              </p>
-              <p style={styles.dropSub}>or click to browse — max 10MB</p>
+              <div>
+                <p className={`text-lg font-semibold ${isDragActive ? 'text-indigo-600' : 'text-gray-900'}`}>
+                  {isDragActive ? 'Drop your file here' : 'Drag & drop your file'}
+                </p>
+                <p className="text-sm text-gray-500">or click to browse</p>
+              </div>
+              <p className="text-xs text-gray-400">PDF, TXT, DOC, DOCX • Max 10MB</p>
             </>
           )}
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Options */}
-      <div style={styles.options}>
-        <div style={styles.optionGroup}>
-          <label style={styles.label}>I am a</label>
-          <div style={styles.pills}>
-            {USER_TYPES.map((t) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* User Type */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
+            User Type
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {USER_TYPES.map((type) => (
               <button
-                key={t.value}
-                onClick={() => setUserType(t.value)}
-                style={{
-                  ...styles.pill,
-                  ...(userType === t.value ? styles.pillActive : {}),
-                }}
+                key={type.value}
+                onClick={() => setUserType(type.value)}
+                disabled={uploading}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  userType === type.value
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {t.label}
+                {type.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div style={styles.optionGroup}>
-          <label style={styles.label}>Output language</label>
-          <div style={styles.pills}>
-            {LANGUAGES.map((l) => (
+        {/* Language */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
+            Output Language
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((lang) => (
               <button
-                key={l}
-                onClick={() => setLanguage(l)}
-                style={{
-                  ...styles.pill,
-                  ...(language === l ? styles.pillActive : {}),
-                }}
+                key={lang}
+                onClick={() => setLanguage(lang)}
+                disabled={uploading}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  language === lang
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {l}
+                {lang}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Submit */}
-      <button
-        onClick={handleSubmit}
-        disabled={!selectedFile || isLoading}
-        style={{
-          ...styles.btn,
-          opacity: !selectedFile || isLoading ? 0.5 : 1,
-          cursor: !selectedFile || isLoading ? "not-allowed" : "pointer",
-        }}
-      >
-        {isLoading ? (
-          <span style={styles.btnInner}>
-            <span style={styles.spinner} />
-            {step === "uploading" ? `Uploading… ${progress}%` : "Analyzing contract…"}
-          </span>
-        ) : (
-          <span style={styles.btnInner}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            Analyze Contract
-          </span>
-        )}
-      </button>
-
-      {isLoading && (
-        <div style={styles.progressBar}>
-          <div
-            style={{
-              ...styles.progressFill,
-              width: step === "analyzing" ? "100%" : `${progress}%`,
-              transition: step === "analyzing" ? "width 2s ease" : "width 0.3s ease",
-              background: step === "analyzing"
-                ? "linear-gradient(90deg, #22c55e, #4ade80, #22c55e)"
-                : "#22c55e",
-              backgroundSize: step === "analyzing" ? "200% 100%" : "auto",
-              animation: step === "analyzing" ? "shimmer 1.5s infinite" : "none",
-            }}
-          />
+      {/* Progress Bar */}
+      {uploading && (
+        <div className="space-y-2">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-indigo-600 to-blue-600 h-full rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-500 text-center">
+            {progress < 100 ? `Uploading... ${Math.round(progress)}%` : 'Processing...'}
+          </p>
         </div>
       )}
 
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
+      {/* Submit Button */}
+      <button
+        onClick={handleSubmit}
+        disabled={!selectedFile || uploading}
+        className={`w-full py-3 px-4 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+          !selectedFile || uploading
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-lg'
+        }`}
+      >
+        {uploading ? (
+          <>
+            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Analyzing...
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Analyze Document
+          </>
+        )}
+      </button>
+
+      {/* Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <p className="font-medium mb-1">How it works:</p>
+        <ul className="list-disc list-inside space-y-1 text-blue-700">
+          <li>Upload your document</li>
+          <li>AI analyzes the content</li>
+          <li>Get summary, insights, and risk assessment</li>
+          <li>Download your analysis report</li>
+        </ul>
+      </div>
     </div>
   );
-}
-
-const styles = {
-  wrapper: { display: "flex", flexDirection: "column", gap: "20px", width: "100%" },
-  dropzone: {
-    border: "1.5px dashed",
-    borderRadius: "16px",
-    padding: "48px 24px",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    textAlign: "center",
-  },
-  dropContent: { display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" },
-  iconRing: {
-    width: "64px", height: "64px", borderRadius: "50%",
-    background: "rgba(255,255,255,0.04)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    border: "1px solid rgba(255,255,255,0.08)",
-  },
-  filename: { color: "#22c55e", fontFamily: "'DM Mono', monospace", fontSize: "14px", fontWeight: 500 },
-  filesize: { color: "#6b7280", fontSize: "12px" },
-  dropText: { color: "#9ca3af", fontSize: "16px", fontWeight: 400 },
-  dropSub: { color: "#4a5568", fontSize: "13px" },
-  options: { display: "flex", flexDirection: "column", gap: "16px" },
-  optionGroup: { display: "flex", flexDirection: "column", gap: "8px" },
-  label: { color: "#6b7280", fontSize: "12px", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase" },
-  pills: { display: "flex", flexWrap: "wrap", gap: "8px" },
-  pill: {
-    padding: "6px 14px", borderRadius: "100px", fontSize: "13px", fontWeight: 400,
-    border: "1px solid #2a3040", background: "transparent", color: "#6b7280",
-    cursor: "pointer", transition: "all 0.15s",
-  },
-  pillActive: { borderColor: "#22c55e", background: "rgba(34, 197, 94, 0.1)", color: "#22c55e" },
-  btn: {
-    padding: "14px 28px", borderRadius: "12px", border: "none",
-    background: "linear-gradient(135deg, #16a34a, #22c55e)",
-    color: "#fff", fontSize: "15px", fontWeight: 600,
-    transition: "all 0.2s", fontFamily: "'DM Sans', sans-serif",
-  },
-  btnInner: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" },
-  spinner: {
-    width: "16px", height: "16px", borderRadius: "50%",
-    border: "2px solid rgba(255,255,255,0.3)",
-    borderTopColor: "#fff",
-    animation: "spin 0.8s linear infinite",
-    display: "inline-block",
-  },
-  progressBar: { height: "4px", background: "#1a2030", borderRadius: "2px", overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: "2px" },
 };

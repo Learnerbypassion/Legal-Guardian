@@ -52,6 +52,7 @@ const analyze = async (req, res, next) => {
         language,
         userType,
         charCount,
+        userId: req.userId || null,
       });
     } catch (dbError) {
       console.warn("⚠️  DB save skipped:", dbError.message);
