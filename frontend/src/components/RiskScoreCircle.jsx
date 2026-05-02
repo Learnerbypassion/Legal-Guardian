@@ -14,7 +14,7 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
   }
 
   // SVG circle properties
-  const radius = 45;
+  const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
 
@@ -24,12 +24,12 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-40 h-40 flex items-center justify-center">
+      <div className="relative w-56 h-56 flex items-center justify-center">
         {/* Background Circle */}
-        <svg width="160" height="160" className="absolute">
+        <svg width="224" height="224" className="absolute">
           <circle
-            cx="80"
-            cy="80"
+            cx="112"
+            cy="112"
             r={radius}
             fill="none"
             stroke="#e5e7eb"
@@ -37,8 +37,8 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
           />
           {/* Progress Circle */}
           <circle
-            cx="80"
-            cy="80"
+            cx="112"
+            cy="112"
             r={radius}
             fill="none"
             stroke={color}
@@ -49,7 +49,7 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
             className="transition-all duration-500"
             style={{
               transform: 'rotate(-90deg)',
-              transformOrigin: '80px 80px',
+              transformOrigin: '112px 112px',
             }}
           />
         </svg>
