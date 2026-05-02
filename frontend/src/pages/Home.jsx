@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UploadBox } from '../components/UploadBox';
+import { AnalysisLoading } from '../components/AnalysisLoading';
 
 export const Home = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState('reading');
 
   const handleLogout = async () => {
     await logout();
@@ -19,7 +22,13 @@ export const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <>
+      {/* Full-page loading overlay */}
+      {uploading && <AnalysisLoading status={analysisStatus} />}
+
+      {/* Main page - hidden when uploading */}
+      {!uploading && (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -235,7 +244,12 @@ export const Home = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <h3 className="text-2xl font-bold text-gray-900 mb-2">Analyze Your Document</h3>
           <p className="text-gray-600 mb-8">Start by uploading a document for analysis</p>
-          <UploadBox />
+          <UploadBox 
+            uploading={uploading}
+            setUploading={setUploading}
+            analysisStatus={analysisStatus}
+            setAnalysisStatus={setAnalysisStatus}
+          />
         </div>
 
         {/* Info Section */}
@@ -290,5 +304,7 @@ export const Home = () => {
 
 
     </div>
+      )}
+    </>
   );
 };

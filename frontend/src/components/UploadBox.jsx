@@ -12,12 +12,11 @@ const USER_TYPES = [
   { value: 'student', label: 'Student' },
 ];
 
-export const UploadBox = () => {
+export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysisStatus }) => {
   const { user } = useAuth();
   const [language, setLanguage] = useState('English');
   const [userType, setUserType] = useState('general');
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -52,6 +51,7 @@ export const UploadBox = () => {
 
     setUploading(true);
     setProgress(0);
+    setAnalysisStatus('reading');
 
     try {
       // Simulate upload progress
@@ -88,6 +88,7 @@ export const UploadBox = () => {
 
       const uploadData = await uploadResponse.json();
       setProgress(50);
+      setAnalysisStatus('analyzing');
 
       // Step 2: Analyze the contract
       const analyzeResponse = await fetch(`${import.meta.env.VITE_API_URL}/ai/analyze`, {
@@ -106,6 +107,7 @@ export const UploadBox = () => {
       });
 
       clearInterval(progressInterval);
+      setAnalysisStatus('detecting');
 
       if (!analyzeResponse.ok) {
         throw new Error('Analysis failed');
@@ -114,21 +116,25 @@ export const UploadBox = () => {
       const analysisData = await analyzeResponse.json();
       setProgress(100);
 
-      // Navigate to result page with analysis
-      // Mark if this is from unauthenticated user
-      navigate('/result', { 
-        state: { 
-          result: analysisData,
-          fileName: uploadData.filename,
-          documentId: uploadData.documentId,
-          isUnauthenticated: !user,
-          contractText: uploadData.contractText
-        } 
-      });
+      // Small delay to show completion state
+      setTimeout(() => {
+        // Navigate to result page with analysis
+        // Mark if this is from unauthenticated user
+        navigate('/result', { 
+          state: { 
+            result: analysisData,
+            fileName: uploadData.filename,
+            documentId: uploadData.documentId,
+            isUnauthenticated: !user,
+            contractText: uploadData.contractText
+          } 
+        });
+      }, 500);
     } catch (err) {
       setError(err.message || 'Upload or analysis failed. Please try again.');
       setUploading(false);
       setProgress(0);
+      setAnalysisStatus('reading');
     }
   };
 
@@ -244,21 +250,6 @@ export const UploadBox = () => {
           </div>
         </div>
       </div>
-
-      {/* Progress Bar */}
-      {uploading && (
-        <div className="space-y-2">
-          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-indigo-600 to-blue-600 h-full rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-gray-500 text-center">
-            {progress < 100 ? `Uploading... ${Math.round(progress)}%` : 'Processing...'}
-          </p>
-        </div>
-      )}
 
       {/* Submit Button */}
       <button

@@ -5,6 +5,7 @@ import ChatBox from '../components/ChatBox';
 import { SaveHistoryModal } from '../components/SaveHistoryModal';
 import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
+import { AnalysisLoading } from '../components/AnalysisLoading';
 import { getRecommendedProfessionals, contactProfessional } from '../services/api';
 
 export const Result = () => {
@@ -64,19 +65,7 @@ export const Result = () => {
   };
 
   if (!result) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">No analysis data found</p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    );
+    return <AnalysisLoading status="analyzing" />;
   }
 
   const handleLogout = async () => {
