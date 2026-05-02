@@ -13,10 +13,17 @@ export const Result = () => {
   const { result, documentId, fileName, isUnauthenticated, contractText } = location.state || {};
   const [activeTab, setActiveTab] = useState('summary');
   const [showMenu, setShowMenu] = useState(false);
-  const [showSaveModal, setShowSaveModal] = useState(isUnauthenticated);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [professionals, setProfessionals] = useState([]);
   const [contactedIds, setContactedIds] = useState({});
+
+  // Show modal only once per session for unauthenticated users
+  useEffect(() => {
+    if (isUnauthenticated && !sessionStorage.getItem('saveModalDismissed')) {
+      setShowSaveModal(true);
+    }
+  }, [isUnauthenticated]);
 
   useEffect(() => {
     if (result) {
@@ -592,7 +599,10 @@ export const Result = () => {
         {/* Save History Modal */}
         <SaveHistoryModal
           isOpen={showSaveModal}
-          onClose={() => setShowSaveModal(false)}
+          onClose={() => {
+            setShowSaveModal(false);
+            sessionStorage.setItem('saveModalDismissed', 'true');
+          }}
           onSave={() => {
             // Save the analysis for later when user logs in
             sessionStorage.setItem('pendingAnalysis', JSON.stringify({
