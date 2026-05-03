@@ -1,6 +1,9 @@
 const {
   registerWithPhone,
-  verifyOTPAndSignup,
+  verifyRegistrationOTPs,
+  setPasswordAndSignup,
+  sendEmailVerificationOTP,
+  verifyEmailOTP,
   resendOTP,
   loginUser,
   getUserById,
@@ -65,26 +68,59 @@ const register = async (req, res) => {
 };
 
 /**
- * Step 2: Verify OTP and set password (complete signup)
+ * Step 2: Verify OTPs
  * POST /api/auth/verify-otp
- * Body: { userId, otp, password }
+ * Body: { userId, phoneOtp, emailOtp }
  */
 const verifyOTP = async (req, res) => {
   try {
-    const { userId, otp, password } = req.body;
+    const { userId, phoneOtp, emailOtp } = req.body;
 
     // Validation
-    if (!userId || !otp || !password) {
+    if (!userId || !phoneOtp) {
       return res.status(400).json({
         success: false,
-        error: "User ID, OTP, and password are required",
+        error: "User ID and Phone OTP are required",
       });
     }
 
-    if (otp.length !== 6) {
+    if (phoneOtp.length !== 6 || (emailOtp && emailOtp.length !== 6)) {
       return res.status(400).json({
         success: false,
-        error: "OTP must be 6 digits",
+        error: "OTPs must be 6 digits",
+      });
+    }
+
+    const result = await verifyRegistrationOTPs(userId, phoneOtp, emailOtp);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "OTPs verified successfully!",
+    });
+  } catch (error) {
+    console.error("❌ Verify OTP error:", error.message);
+    res.status(400).json({
+      success: false,
+      error: error.message || "OTP verification failed",
+    });
+  }
+};
+
+/**
+ * Step 3: Set Password
+ * POST /api/auth/set-password
+ * Body: { userId, password }
+ */
+const setPassword = async (req, res) => {
+  try {
+    const { userId, password } = req.body;
+
+    // Validation
+    if (!userId || !password) {
+      return res.status(400).json({
+        success: false,
+        error: "User ID and password are required",
       });
     }
 
@@ -95,9 +131,7 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    const result = await verifyOTPAndSignup(userId, otp, password);
-
-
+    const result = await setPasswordAndSignup(userId, password);
 
     res.status(200).json({
       success: true,
@@ -105,10 +139,10 @@ const verifyOTP = async (req, res) => {
       message: "Phone verified and account created successfully!",
     });
   } catch (error) {
-    console.error("❌ Verify OTP error:", error.message);
+    console.error("❌ Set password error:", error.message);
     res.status(400).json({
       success: false,
-      error: error.message || "OTP verification failed",
+      error: error.message || "Password setup failed",
     });
   }
 };
@@ -453,9 +487,55 @@ const resendResetOTPHandler = async (req, res) => {
   }
 };
 
+/**
+ * Send Email Verification OTP (Protected)
+ * POST /api/auth/send-email-verification
+ */
+const sendEmailVerificationHandler = async (req, res) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Not authenticated" });
+    }
+
+    const result = await sendEmailVerificationOTP(userId);
+    res.status(200).json({ success: true, message: result.message });
+  } catch (error) {
+    console.error("❌ Send email verification error:", error.message);
+    res.status(400).json({ success: false, error: error.message || "Failed to send email verification" });
+  }
+};
+
+/**
+ * Verify Email OTP (Protected)
+ * POST /api/auth/verify-email
+ * Body: { otp }
+ */
+const verifyEmailHandler = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { otp } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Not authenticated" });
+    }
+
+    if (!otp || otp.length !== 6) {
+      return res.status(400).json({ success: false, error: "Valid 6-digit OTP is required" });
+    }
+
+    const result = await verifyEmailOTP(userId, otp);
+    res.status(200).json({ success: true, data: result, message: result.message });
+  } catch (error) {
+    console.error("❌ Verify email error:", error.message);
+    res.status(400).json({ success: false, error: error.message || "Email verification failed" });
+  }
+};
+
 module.exports = {
   register,
   verifyOTP,
+  setPassword,
   resendOTPHandler,
   login,
   getCurrentUser,
@@ -465,4 +545,6 @@ module.exports = {
   resetPasswordHandler,
   resendResetOTPHandler,
   updateProfile,
+  sendEmailVerificationHandler,
+  verifyEmailHandler,
 };

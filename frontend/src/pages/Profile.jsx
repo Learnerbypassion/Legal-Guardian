@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, sendEmailOTP, verifyEmailOTP } = useAuth();
   const navigate = useNavigate();
 
   const [editing, setEditing] = React.useState(false);
@@ -15,10 +15,45 @@ export const Profile = () => {
     profession: user?.professionalDetails?.profession || 'Lawyer',
   });
   const [message, setMessage] = React.useState('');
+  
+  const [emailVerifying, setEmailVerifying] = React.useState(false);
+  const [emailOtp, setEmailOtp] = React.useState('');
+  const [otpSent, setOtpSent] = React.useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleSendEmailOtp = async () => {
+    try {
+      setLoading(true);
+      setMessage('');
+      await sendEmailOTP();
+      setOtpSent(true);
+      setEmailVerifying(true);
+      setMessage('OTP sent to your email.');
+    } catch (err) {
+      setMessage(err.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    try {
+      setLoading(true);
+      setMessage('');
+      await verifyEmailOTP(emailOtp);
+      setEmailVerifying(false);
+      setOtpSent(false);
+      setEmailOtp('');
+      setMessage('Email verified successfully!');
+    } catch (err) {
+      setMessage(err.message || 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProfChange = (e) => {
@@ -63,6 +98,13 @@ export const Profile = () => {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Messages */}
+        {message && !editing && (
+          <div className={`p-4 mb-6 rounded-lg text-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+            {message}
+          </div>
+        )}
+
         {/* Profile Card */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <div className="flex items-center gap-6 mb-8">
@@ -87,6 +129,57 @@ export const Profile = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
                 <p className="text-gray-900 font-medium">{user.email}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Email Verification</label>
+                <div className="flex items-center gap-2">
+                  {user.isEmailVerified ? (
+                    <>
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <p className="text-green-600 font-medium">Verified</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                      <p className="text-yellow-600 font-medium">Pending</p>
+                      {!emailVerifying && (
+                        <button
+                          onClick={handleSendEmailOtp}
+                          disabled={loading}
+                          className="ml-4 text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-200 transition font-semibold"
+                        >
+                          Verify Now
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+                {emailVerifying && !user.isEmailVerified && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter 6-digit OTP"
+                      value={emailOtp}
+                      onChange={(e) => setEmailOtp(e.target.value)}
+                      maxLength="6"
+                      className="px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm w-40"
+                    />
+                    <button
+                      onClick={handleVerifyEmail}
+                      disabled={loading || emailOtp.length !== 6}
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => { setEmailVerifying(false); setOtpSent(false); setMessage(''); }}
+                      className="text-xs text-gray-500 hover:text-gray-700 ml-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>

@@ -3,21 +3,22 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Signup = () => {
-  const [step, setStep] = useState(1); // 1: Register, 2: OTP Verification
+  const [step, setStep] = useState(1); // 1: Register, 2: OTP Verification, 3: Set Password
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
     name: '',
     password: '',
     confirmPassword: '',
-    otp: '',
+    phoneOtp: '',
+    emailOtp: '',
     role: 'user'
   });
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [timer, setTimer] = useState(0);
-  const { register, verifyOTP, resendOTP, error, setError } = useAuth();
+  const { register, verifyOTP, setPassword, resendOTP, error, setError } = useAuth();
   const navigate = useNavigate();
 
   // OTP Timer
@@ -119,10 +120,42 @@ export const Signup = () => {
   const handleOTPSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.otp) {
-      setError('Please enter the OTP');
+    if (!formData.phoneOtp) {
+      setError('Please enter the Phone OTP');
       return;
     }
+
+    setLoading(true);
+    try {
+      await verifyOTP(userId, formData.phoneOtp, formData.emailOtp || null);
+      setStep(3);
+    } catch (err) {
+      // Error handled by context
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipEmail = async () => {
+    if (!formData.phoneOtp) {
+      setError('Phone OTP is required even if skipping email');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await verifyOTP(userId, formData.phoneOtp, null);
+      setStep(3);
+    } catch (err) {
+      // Error handled by context
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+
     if (!formData.password) {
       setError('Please set a password');
       return;
@@ -138,7 +171,7 @@ export const Signup = () => {
 
     setLoading(true);
     try {
-      await verifyOTP(userId, formData.otp, formData.password);
+      await setPassword(userId, formData.password);
       navigate('/');
     } catch (err) {
       // Error handled by context
@@ -152,7 +185,7 @@ export const Signup = () => {
     try {
       await resendOTP(userId);
       setTimer(60);
-      setFormData(prev => ({ ...prev, otp: '' }));
+      setFormData(prev => ({ ...prev, phoneOtp: '', emailOtp: '' }));
     } catch (err) {
       // Error handled by context
     } finally {
@@ -278,11 +311,11 @@ export const Signup = () => {
                 </button>
               </form>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Verify Phone Number</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Verify Your Identity</h2>
               <p className="text-gray-500 text-sm mb-6">
-                Enter the 6-digit code sent to <span className="font-semibold">{formData.phone}</span>
+                Enter the 6-digit codes sent to your phone and email.
               </p>
 
               {/* Error Alert */}
@@ -293,15 +326,15 @@ export const Signup = () => {
               )}
 
               <form onSubmit={handleOTPSubmit} className="space-y-4">
-                {/* OTP Field */}
+                {/* Phone OTP Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    OTP Code
+                    Phone OTP ({formData.phone})
                   </label>
                   <input
                     type="text"
-                    name="otp"
-                    value={formData.otp}
+                    name="phoneOtp"
+                    value={formData.phoneOtp}
                     onChange={handleChange}
                     placeholder="000000"
                     maxLength="6"
@@ -310,6 +343,88 @@ export const Signup = () => {
                   />
                 </div>
 
+                {/* Email OTP Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email OTP ({formData.email}) <span className="text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="emailOtp"
+                    value={formData.emailOtp}
+                    onChange={handleChange}
+                    placeholder="000000"
+                    maxLength="6"
+                    className="w-full px-4 py-3 text-center text-2xl tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono"
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="space-y-3 mt-6">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Verifying...' : 'Verify Codes'}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={handleSkipEmail}
+                    disabled={loading}
+                    className="w-full py-3 px-4 border border-indigo-200 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-50 transition disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    Verify Phone & Skip Email for Now
+                  </button>
+                </div>
+
+                {/* Resend OTP */}
+                <div className="text-center pt-4">
+                  {timer > 0 ? (
+                    <p className="text-sm text-gray-500">
+                      Resend code in <span className="font-semibold text-indigo-600">{timer}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={loading}
+                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition disabled:opacity-70"
+                    >
+                      Didn't receive the codes? Resend
+                    </button>
+                  )}
+                </div>
+
+                {/* Back Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep(1);
+                    setError(null);
+                    setFormData(prev => ({ ...prev, phoneOtp: '', emailOtp: '' }));
+                  }}
+                  className="w-full mt-4 py-2 px-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+                >
+                  Back
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Secure Your Account</h2>
+              <p className="text-gray-500 text-sm mb-6">Create a strong password for your account</p>
+
+              {/* Error Alert */}
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 {/* Password Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,38 +472,7 @@ export const Signup = () => {
                   disabled={loading}
                   className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed mt-6"
                 >
-                  {loading ? 'Verifying...' : 'Create Account'}
-                </button>
-
-                {/* Resend OTP */}
-                <div className="text-center pt-4">
-                  {timer > 0 ? (
-                    <p className="text-sm text-gray-500">
-                      Resend code in <span className="font-semibold text-indigo-600">{timer}s</span>
-                    </p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleResendOTP}
-                      disabled={loading}
-                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition disabled:opacity-70"
-                    >
-                      Didn't receive the code? Resend
-                    </button>
-                  )}
-                </div>
-
-                {/* Back Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    setError(null);
-                    setFormData(prev => ({ ...prev, otp: '', password: '', confirmPassword: '' }));
-                  }}
-                  className="w-full mt-4 py-2 px-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
-                >
-                  Back
+                  {loading ? 'Creating Account...' : 'Complete Setup'}
                 </button>
               </form>
             </>

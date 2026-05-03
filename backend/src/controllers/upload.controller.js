@@ -13,7 +13,6 @@ const uploadPDF = async (req, res, next) => {
 
     const { buffer, originalname } = req.file;
     const { rawText, cleanedText, charCount } = await extractAndClean(buffer);
-    console.log(cleanedText);
     res.status(200).json({
       success: true,
       filename: originalname,

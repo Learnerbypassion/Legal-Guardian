@@ -43,17 +43,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyOTP = async (userId, otp, password) => {
+  const verifyOTP = async (userId, phoneOtp, emailOtp = null) => {
     try {
       setError(null);
-      const response = await api.post('/auth/verify-otp', { userId, otp, password });
+      const response = await api.post('/auth/verify-otp', { userId, phoneOtp, emailOtp });
+      return response.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'OTP verification failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const setPassword = async (userId, password) => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/set-password', { userId, password });
       const { token: newToken, user: userData } = response.data.data;
       Cookies.set('token', newToken, { expires: 7 });
       setToken(newToken);
       setUser(userData);
       return response.data.data;
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'OTP verification failed';
+      const errorMsg = err.response?.data?.error || 'Password setup failed';
       setError(errorMsg);
       throw new Error(errorMsg);
     }
@@ -66,6 +78,35 @@ export const AuthProvider = ({ children }) => {
       return response.data.data;
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Failed to resend OTP';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const sendEmailOTP = async () => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/send-email-verification', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Failed to send email verification';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const verifyEmailOTP = async (otp) => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/verify-email', { otp }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(response.data.data.user);
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Email verification failed';
       setError(errorMsg);
       throw new Error(errorMsg);
     }
@@ -112,6 +153,9 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated,
       register,
       verifyOTP,
+      setPassword,
+      sendEmailOTP,
+      verifyEmailOTP,
       resendOTP,
       login,
       logout,

@@ -31,6 +31,8 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     otp: { type: String },
     otpExpires: { type: Date },
+    emailOtp: { type: String },
+    emailOtpExpires: { type: Date },
     resetOTP: { type: String },
     resetOTPExpires: { type: Date },
     documents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],

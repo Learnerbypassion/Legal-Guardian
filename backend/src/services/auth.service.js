@@ -119,9 +119,11 @@ const registerWithPhone = async (email, phone, name, role = "user") => {
       throw new Error("Email or phone number already registered. Please login instead.");
     }
 
-    // Generate OTP
+    // Generate OTPs
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const emailOtp = generateOTP();
+    const emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     let user;
     
@@ -132,6 +134,8 @@ const registerWithPhone = async (email, phone, name, role = "user") => {
       // Update OTP and expiry for existing unverified user
       existingUser.otp = otp;
       existingUser.otpExpires = otpExpires;
+      existingUser.emailOtp = emailOtp;
+      existingUser.emailOtpExpires = emailOtpExpires;
       existingUser.name = name; // Update name in case they want to change it
       existingUser.role = role; // Update role
       
@@ -147,6 +151,8 @@ const registerWithPhone = async (email, phone, name, role = "user") => {
         role,
         otp,
         otpExpires,
+        emailOtp,
+        emailOtpExpires,
         isPhoneVerified: false,
       });
 
@@ -156,11 +162,15 @@ const registerWithPhone = async (email, phone, name, role = "user") => {
     // Send OTP via Twilio
     await sendOTP(phone, otp);
 
+    // Send OTP via Email
+    const { sendOtpEmail } = require('./email.service');
+    await sendOtpEmail(email, name, emailOtp);
+
     return {
       userId: user._id,
       email: user.email,
       phone: user.phone,
-      message: existingUser ? "New OTP sent to your phone number. Please verify." : "OTP sent to your phone number",
+      message: existingUser ? "New OTPs sent to your email and phone number. Please verify." : "OTPs sent to your email and phone number",
     };
   } catch (error) {
     throw error;
@@ -168,9 +178,9 @@ const registerWithPhone = async (email, phone, name, role = "user") => {
 };
 
 /**
- * Verify OTP and Complete Signup
+ * Verify OTPs
  */
-const verifyOTPAndSignup = async (userId, otp, password) => {
+const verifyRegistrationOTPs = async (userId, phoneOtp, emailOtp) => {
   try {
     const user = await User.findById(userId);
 
@@ -178,14 +188,56 @@ const verifyOTPAndSignup = async (userId, otp, password) => {
       throw new Error("User not found");
     }
 
-    // Check if OTP has expired
-    if (new Date() > user.otpExpires) {
-      throw new Error("OTP has expired");
+    // Verify Phone OTP
+    const now = new Date();
+    if (now > user.otpExpires) {
+      throw new Error("Phone OTP has expired");
+    }
+    if (user.otp !== phoneOtp) {
+      throw new Error("Invalid Phone OTP");
     }
 
-    // Verify OTP
-    if (user.otp !== otp) {
-      throw new Error("Invalid OTP");
+    // Update phone verification
+    user.isPhoneVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+
+    // Verify Email OTP if provided
+    if (emailOtp) {
+      if (now > user.emailOtpExpires) {
+        throw new Error("Email OTP has expired");
+      }
+      if (user.emailOtp !== emailOtp) {
+        throw new Error("Invalid Email OTP");
+      }
+      user.isEmailVerified = true;
+      user.emailOtp = null;
+      user.emailOtpExpires = null;
+    }
+
+    await user.save();
+
+    return {
+      message: "Phone verified successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Set Password and Complete Signup
+ */
+const setPasswordAndSignup = async (userId, password) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (!user.isPhoneVerified) {
+      throw new Error("Please verify your phone number first");
     }
 
     // Hash and set password
@@ -193,9 +245,6 @@ const verifyOTPAndSignup = async (userId, otp, password) => {
 
     // Update user
     user.password = hashedPassword;
-    user.isPhoneVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
 
     await user.save();
 
@@ -211,6 +260,7 @@ const verifyOTPAndSignup = async (userId, otp, password) => {
         name: user.name,
         role: user.role,
         isPhoneVerified: user.isPhoneVerified,
+        isEmailVerified: user.isEmailVerified,
       },
     };
   } catch (error) {
@@ -229,24 +279,32 @@ const resendOTP = async (userId) => {
       throw new Error("User not found");
     }
 
-    if (user.isPhoneVerified) {
+    if (user.isPhoneVerified && user.isEmailVerified) {
       throw new Error("User is already verified");
     }
 
     // Generate new OTP
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const emailOtp = generateOTP();
+    const emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     user.otp = otp;
     user.otpExpires = otpExpires;
+    user.emailOtp = emailOtp;
+    user.emailOtpExpires = emailOtpExpires;
 
     await user.save();
 
     // Send OTP via Twilio
     await sendOTP(user.phone, otp);
 
+    // Send OTP via Email
+    const { sendOtpEmail } = require('./email.service');
+    await sendOtpEmail(user.email, user.name, emailOtp);
+
     return {
-      message: "OTP resent to your phone number",
+      message: "OTPs resent to your phone number and email",
     };
   } catch (error) {
     throw error;
@@ -455,6 +513,69 @@ const resendResetOTP = async (userId) => {
   }
 };
 
+/**
+ * Send Email Verification OTP (for logged-in users)
+ */
+const sendEmailVerificationOTP = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+    if (user.isEmailVerified) throw new Error("Email is already verified");
+
+    const emailOtp = generateOTP();
+    const emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.emailOtp = emailOtp;
+    user.emailOtpExpires = emailOtpExpires;
+    await user.save();
+
+    const { sendOtpEmail } = require('./email.service');
+    await sendOtpEmail(user.email, user.name, emailOtp);
+
+    return { message: "Email verification OTP sent" };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Verify Email OTP (for logged-in users)
+ */
+const verifyEmailOTP = async (userId, emailOtp) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    if (new Date() > user.emailOtpExpires) {
+      throw new Error("Email OTP has expired");
+    }
+
+    if (user.emailOtp !== emailOtp) {
+      throw new Error("Invalid Email OTP");
+    }
+
+    user.isEmailVerified = true;
+    user.emailOtp = null;
+    user.emailOtpExpires = null;
+    await user.save();
+
+    return {
+      user: {
+        _id: user._id,
+        email: user.email,
+        phone: user.phone,
+        name: user.name,
+        role: user.role,
+        isPhoneVerified: user.isPhoneVerified,
+        isEmailVerified: user.isEmailVerified,
+      },
+      message: "Email verified successfully"
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   generateOTP,
   sendOTP,
@@ -463,7 +584,10 @@ module.exports = {
   generateToken,
   verifyToken,
   registerWithPhone,
-  verifyOTPAndSignup,
+  verifyRegistrationOTPs,
+  setPasswordAndSignup,
+  sendEmailVerificationOTP,
+  verifyEmailOTP,
   resendOTP,
   loginUser,
   getUserById,
