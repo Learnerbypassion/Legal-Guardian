@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -6,19 +6,19 @@ export const Profile = () => {
   const { user, logout, sendEmailOTP, verifyEmailOTP } = useAuth();
   const navigate = useNavigate();
 
-  const [editing, setEditing] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [profDetails, setProfDetails] = React.useState({
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [profDetails, setProfDetails] = useState({
     education: user?.professionalDetails?.education || '',
     experience: user?.professionalDetails?.experience || '',
     credentials: user?.professionalDetails?.credentials || '',
     profession: user?.professionalDetails?.profession || 'Lawyer',
   });
-  const [message, setMessage] = React.useState('');
+  const [message, setMessage] = useState('');
   
-  const [emailVerifying, setEmailVerifying] = React.useState(false);
-  const [emailOtp, setEmailOtp] = React.useState('');
-  const [otpSent, setOtpSent] = React.useState(false);
+  const [emailVerifying, setEmailVerifying] = useState(false);
+  const [emailOtp, setEmailOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -32,9 +32,9 @@ export const Profile = () => {
       await sendEmailOTP();
       setOtpSent(true);
       setEmailVerifying(true);
-      setMessage('OTP sent to your email.');
+      setMessage('success:OTP sent to your email.');
     } catch (err) {
-      setMessage(err.message || 'Failed to send OTP');
+      setMessage('error:' + (err.message || 'Failed to send OTP'));
     } finally {
       setLoading(false);
     }
@@ -48,9 +48,9 @@ export const Profile = () => {
       setEmailVerifying(false);
       setOtpSent(false);
       setEmailOtp('');
-      setMessage('Email verified successfully!');
+      setMessage('success:Email verified successfully!');
     } catch (err) {
-      setMessage(err.message || 'Verification failed');
+      setMessage('error:' + (err.message || 'Verification failed'));
     } finally {
       setLoading(false);
     }
@@ -66,165 +66,120 @@ export const Profile = () => {
       setMessage('');
       const { updateProfile } = await import('../services/api');
       await updateProfile(profDetails);
-      setMessage('Profile updated successfully! Refresh to see changes.');
+      setMessage('success:Profile updated successfully! Refresh to see changes.');
       setEditing(false);
     } catch (err) {
-      setMessage(err.response?.data?.error || 'Failed to update profile');
+      setMessage('error:' + (err.response?.data?.error || 'Failed to update profile'));
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-            Profile
-          </h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Logout
-          </button>
+    <div className="min-h-screen bg-[#F4F5F7] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#1B2F4E]">Account Profile</h1>
+            <p className="text-[#3D4F66] font-medium mt-1">Manage your credentials and security settings.</p>
+          </div>
+          <div className="flex gap-3">
+             <button
+              onClick={() => navigate('/')}
+              className="px-5 py-2.5 border-2 border-[#1B2F4E] text-[#1B2F4E] font-bold rounded-xl hover:bg-white transition shadow-sm"
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-5 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition shadow-md"
+            >
+              Logout
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Messages */}
-        {message && !editing && (
-          <div className={`p-4 mb-6 rounded-lg text-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
-            {message}
+        {/* Global Notifications */}
+        {message && (
+          <div className={`mb-8 p-4 rounded-xl border-l-4 shadow-sm flex items-center gap-3 ${
+            message.startsWith('success') ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800'
+          }`}>
+            <span className="font-bold text-sm">{message.split(':')[1]}</span>
           </div>
         )}
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div className="flex items-center gap-6 mb-8">
-            {/* Avatar */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white">
-                {user.name?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-
-            {/* Basic Info */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">{user.name}</h2>
-              <p className="text-gray-500">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
-
-          {/* User Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-                <p className="text-gray-900 font-medium">{user.email}</p>
+        {/* Identity Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-[#CBD2DC] overflow-hidden mb-8">
+          <div className="h-24 bg-[#1B2F4E]"></div>
+          <div className="px-8 pb-8">
+            <div className="relative -mt-12 mb-6 flex items-end gap-6">
+              <div className="w-24 h-24 rounded-2xl bg-[#FAF3E4] border-4 border-white flex items-center justify-center shadow-lg">
+                <span className="text-[#8A6C2A] text-4xl font-bold">{user.name?.charAt(0).toUpperCase()}</span>
               </div>
+              <div className="pb-2">
+                <h2 className="text-2xl font-bold text-[#1B2F4E]">{user.name}</h2>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                  Member Since {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Email Verification</label>
-                <div className="flex items-center gap-2">
-                  {user.isEmailVerified ? (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <p className="text-green-600 font-medium">Verified</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <p className="text-yellow-600 font-medium">Pending</p>
-                      {!emailVerifying && (
-                        <button
-                          onClick={handleSendEmailOtp}
-                          disabled={loading}
-                          className="ml-4 text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-200 transition font-semibold"
-                        >
-                          Verify Now
-                        </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-[#8A6C2A] uppercase tracking-widest mb-1">Email Address</label>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[#1B2F4E] font-bold">{user.email}</p>
+                    <div className="flex items-center gap-2">
+                      {user.isEmailVerified ? (
+                        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200 uppercase">Verified</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold border border-yellow-200 uppercase">Pending</span>
+                          {!emailVerifying && (
+                            <button onClick={handleSendEmailOtp} disabled={loading} className="text-xs font-bold text-[#1B2F4E] underline hover:text-[#8A6C2A]">Verify Now</button>
+                          )}
+                        </div>
                       )}
-                    </>
-                  )}
+                    </div>
+                  </div>
                 </div>
+
                 {emailVerifying && !user.isEmailVerified && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter 6-digit OTP"
-                      value={emailOtp}
-                      onChange={(e) => setEmailOtp(e.target.value)}
-                      maxLength="6"
-                      className="px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm w-40"
-                    />
-                    <button
-                      onClick={handleVerifyEmail}
-                      disabled={loading || emailOtp.length !== 6}
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
-                    >
-                      Submit
-                    </button>
-                    <button
-                      onClick={() => { setEmailVerifying(false); setOtpSent(false); setMessage(''); }}
-                      className="text-xs text-gray-500 hover:text-gray-700 ml-1"
-                    >
-                      Cancel
-                    </button>
+                  <div className="bg-[#FAF3E4] p-4 rounded-xl border border-[#8A6C2A]/20">
+                    <label className="block text-xs font-bold text-[#1B2F4E] mb-2 uppercase">Enter OTP</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={emailOtp}
+                        onChange={(e) => setEmailOtp(e.target.value)}
+                        placeholder="6-digit code"
+                        maxLength="6"
+                        className="w-full px-3 py-2 border border-[#CBD2DC] rounded-lg focus:ring-2 focus:ring-[#8A6C2A] outline-none font-mono"
+                      />
+                      <button onClick={handleVerifyEmail} disabled={loading || emailOtp.length !== 6} className="bg-[#1B2F4E] text-white px-4 py-2 rounded-lg font-bold text-xs">Submit</button>
+                    </div>
+                    <button onClick={() => setEmailVerifying(false)} className="text-[10px] text-gray-500 mt-2 underline">Cancel</button>
                   </div>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Phone Number</label>
-                <p className="text-gray-900 font-medium">{user.phone}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Phone Verification</label>
-                <div className="flex items-center gap-2">
-                  {user.isPhoneVerified ? (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <p className="text-green-600 font-medium">Verified</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <p className="text-yellow-600 font-medium">Pending</p>
-                    </>
-                  )}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-[#8A6C2A] uppercase tracking-widest mb-1">Phone Number</label>
+                  <p className="text-[#1B2F4E] font-bold">{user.phone}</p>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border uppercase ${user.isPhoneVerified ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                    {user.isPhoneVerified ? 'Verified' : 'Pending'}
+                  </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">User Type</label>
-                <p className="text-gray-900 font-medium capitalize">{user.userType || 'General'}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Preferred Language</label>
-                <p className="text-gray-900 font-medium">{user.preferredLanguage || 'English'}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Role</label>
-                <p className="text-gray-900 font-medium capitalize">{user.role || 'User'}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Member ID</label>
-                <p className="text-gray-900 font-mono text-sm">{user._id}</p>
+                <div>
+                  <label className="block text-xs font-bold text-[#8A6C2A] uppercase tracking-widest mb-1">Account Role</label>
+                  <p className="text-[#1B2F4E] font-bold capitalize">{user.role || 'User'} · {user.userType || 'General'}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -232,133 +187,84 @@ export const Profile = () => {
 
         {/* Professional Details Section */}
         {user.role === 'professional' && (
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Professional Details</h3>
+          <div className="bg-white rounded-2xl shadow-xl border border-[#CBD2DC] p-8 mb-8">
+            <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+              <h3 className="text-xl font-bold text-[#1B2F4E]">Professional Credentials</h3>
               <button
                 onClick={() => setEditing(!editing)}
-                className="px-4 py-2 text-indigo-600 font-medium border border-indigo-600 rounded-lg hover:bg-indigo-50 transition"
+                className="text-sm font-bold text-[#8A6C2A] hover:text-[#1B2F4E] transition uppercase tracking-wider"
               >
-                {editing ? 'Cancel' : 'Edit Details'}
+                {editing ? '[ Cancel ]' : '[ Edit Details ]'}
               </button>
             </div>
 
-            {message && (
-              <div className={`p-4 mb-4 rounded-lg text-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {message}
-              </div>
-            )}
-
             {editing ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Profession Type</label>
-                  <select
-                    name="profession"
-                    value={profDetails.profession}
-                    onChange={handleProfChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                  >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-1">
+                  <label className="block text-xs font-bold text-[#1B2F4E] mb-1">Profession</label>
+                  <select name="profession" value={profDetails.profession} onChange={handleProfChange} className="w-full px-4 py-2 border border-[#CBD2DC] rounded-xl focus:ring-2 focus:ring-[#8A6C2A] outline-none">
                     <option value="Lawyer">Lawyer</option>
                     <option value="CA">Chartered Accountant (CA)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Education</label>
-                  <input
-                    type="text"
-                    name="education"
-                    value={profDetails.education}
-                    onChange={handleProfChange}
-                    placeholder="e.g. LLB, LLM, CA"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+                  <label className="block text-xs font-bold text-[#1B2F4E] mb-1">Education</label>
+                  <input type="text" name="education" value={profDetails.education} onChange={handleProfChange} className="w-full px-4 py-2 border border-[#CBD2DC] rounded-xl outline-none focus:ring-2 focus:ring-[#8A6C2A]" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience</label>
-                  <input
-                    type="text"
-                    name="experience"
-                    value={profDetails.experience}
-                    onChange={handleProfChange}
-                    placeholder="e.g. 5 years in Corporate Law"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-[#1B2F4E] mb-1">Experience Summary</label>
+                  <input type="text" name="experience" value={profDetails.experience} onChange={handleProfChange} className="w-full px-4 py-2 border border-[#CBD2DC] rounded-xl outline-none focus:ring-2 focus:ring-[#8A6C2A]" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Credentials/License</label>
-                  <input
-                    type="text"
-                    name="credentials"
-                    value={profDetails.credentials}
-                    onChange={handleProfChange}
-                    placeholder="e.g. Bar Council Number"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-[#1B2F4E] mb-1">License/Credentials</label>
+                  <input type="text" name="credentials" value={profDetails.credentials} onChange={handleProfChange} className="w-full px-4 py-2 border border-[#CBD2DC] rounded-xl outline-none focus:ring-2 focus:ring-[#8A6C2A]" />
                 </div>
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={loading}
-                  className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                >
-                  {loading ? 'Saving...' : 'Save Details'}
+                <button onClick={handleSaveProfile} disabled={loading} className="md:col-span-2 py-3 bg-[#1B2F4E] text-white rounded-xl font-bold shadow-lg hover:bg-[#8A6C2A] transition-all">
+                  {loading ? 'Processing...' : 'Save Updated Credentials'}
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Profession</label>
-                  <p className="text-gray-900">{user.professionalDetails?.profession || 'Not set'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Education</label>
-                  <p className="text-gray-900">{user.professionalDetails?.education || 'Not set'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Experience</label>
-                  <p className="text-gray-900">{user.professionalDetails?.experience || 'Not set'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Credentials</label>
-                  <p className="text-gray-900">{user.professionalDetails?.credentials || 'Not set'}</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+                <DetailItem label="Primary Profession" value={user.professionalDetails?.profession} />
+                <DetailItem label="Educational Background" value={user.professionalDetails?.education} />
+                <DetailItem label="Expertise & Years" value={user.professionalDetails?.experience} />
+                <DetailItem label="Bar/License ID" value={user.professionalDetails?.credentials} />
               </div>
             )}
           </div>
         )}
 
-        {/* Account Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Account Actions</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              onClick={() => navigate('/')}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
-            >
-              Back to Dashboard
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {/* Security Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mt-8">
-          <h4 className="font-semibold text-blue-900 mb-2">Security Information</h4>
-          <ul className="text-blue-800 text-sm space-y-1">
-            <li>✓ Your password is securely hashed</li>
-            <li>✓ Your phone number is verified via SMS</li>
-            <li>✓ All data is encrypted in transit</li>
-            <li>✓ Your account is protected by JWT authentication</li>
+        {/* Security Info Card */}
+        <div className="bg-[#1B2F4E] rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24"></div>
+          <h3 className="text-lg font-bold mb-6 text-[#FAF3E4] uppercase tracking-widest flex items-center gap-2">
+             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+             Security & Protection
+          </h3>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-medium text-blue-100/80">
+            <li className="flex items-center gap-3">
+              <span className="text-[#8A6C2A]">✦</span> AES-256 Cloud Encryption
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="text-[#8A6C2A]">✦</span> JWT Session Management
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="text-[#8A6C2A]">✦</span> Secure Password Hashing
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="text-[#8A6C2A]">✦</span> Encrypted Transit (SSL/TLS)
+            </li>
           </ul>
         </div>
       </div>
     </div>
   );
 };
+
+// Helper Component for cleaner code
+const DetailItem = ({ label, value }) => (
+  <div>
+    <label className="block text-[10px] font-bold text-[#8A6C2A] uppercase tracking-[0.2em] mb-1">{label}</label>
+    <p className="text-[#1B2F4E] font-bold text-lg">{value || 'Not Configured'}</p>
+  </div>
+);

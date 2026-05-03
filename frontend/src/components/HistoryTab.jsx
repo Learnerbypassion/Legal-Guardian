@@ -11,12 +11,12 @@ export const HistoryTab = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Logic: Authentication check and fetching 
   useEffect(() => {
     if (!user) {
       setDocuments([]);
       return;
     }
-
     fetchDocuments();
   }, [user]);
 
@@ -40,7 +40,7 @@ export const HistoryTab = () => {
   };
 
   const handleViewDocument = (doc) => {
-    // Navigate to result page with the document data
+    // Navigation logic with state 
     navigate('/result', {
       state: {
         result: {
@@ -57,35 +57,35 @@ export const HistoryTab = () => {
     });
   };
 
+  // Color logic updated for professional palette
   const getRiskColor = (riskLevel) => {
     const colors = {
-      'Low': 'text-green-600 bg-green-50',
-      'Medium': 'text-yellow-600 bg-yellow-50',
-      'High': 'text-orange-600 bg-orange-50',
-      'Critical': 'text-red-600 bg-red-50',
+      'Low': 'text-green-700 bg-green-50 border-green-200',
+      'Medium': 'text-yellow-700 bg-yellow-50 border-yellow-200',
+      'High': 'text-orange-700 bg-orange-50 border-orange-200',
+      'Critical': 'text-red-700 bg-red-50 border-red-200',
     };
-    return colors[riskLevel] || 'text-gray-600 bg-gray-50';
+    return colors[riskLevel] || 'text-gray-600 bg-gray-50 border-gray-200';
   };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   };
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+      <div className="flex flex-col items-center justify-center py-12 bg-[#F8FAFC] border border-dashed border-[#CBD2DC] rounded-2xl">
         <div className="text-center">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p className="text-gray-600 font-medium">Sign in to view your document history</p>
-          <p className="text-sm text-gray-500 mt-2">Your uploaded documents and analysis results will appear here</p>
+          <div className="w-16 h-16 bg-[#FAF3E4] rounded-full flex items-center justify-center mx-auto mb-4">
+             <svg className="w-8 h-8 text-[#1B2F4E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <p className="text-[#1B2F4E] font-bold uppercase tracking-widest text-xs mb-1">Archive Locked</p>
+          <p className="text-xs text-[#3D4F66]">Sign in to view your document history</p>
         </div>
       </div>
     );
@@ -94,20 +94,20 @@ export const HistoryTab = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+        <div className="animate-spin rounded-lg h-8 w-8 border-2 border-[#8A6C2A] border-t-transparent" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700 text-sm font-medium">{error}</p>
+      <div className="bg-red-50 border border-red-100 rounded-xl p-5 text-center">
+        <p className="text-red-700 text-sm font-bold mb-3">{error}</p>
         <button
           onClick={fetchDocuments}
-          className="text-red-600 hover:text-red-700 text-sm font-medium mt-2"
+          className="text-xs font-black uppercase tracking-widest text-[#1B2F4E] hover:text-[#8A6C2A] transition-colors"
         >
-          Try again →
+          Retry Connection →
         </button>
       </div>
     );
@@ -115,74 +115,82 @@ export const HistoryTab = () => {
 
   if (documents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg">
+      <div className="flex flex-col items-center justify-center py-16 bg-[#FAF3E4]/30 border border-[#FAF3E4] rounded-2xl">
         <div className="text-center">
-          <svg className="w-16 h-16 text-indigo-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-16 h-16 text-[#8A6C2A]/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <p className="text-indigo-900 font-medium">No uploaded documents yet</p>
-          <p className="text-sm text-indigo-700 mt-2">Upload and analyze a contract to see it in your history</p>
+          <p className="text-[#1B2F4E] font-bold uppercase tracking-widest text-xs mb-1">Repository Empty</p>
+          <p className="text-xs text-[#3D4F66]">Upload a contract to begin your analysis archive</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-gray-600 mb-4">
-        <span className="font-semibold text-indigo-600">{documents.length}</span> document{documents.length !== 1 ? 's' : ''} uploaded
+    <div className="space-y-5">
+      <div className="flex items-center justify-between px-1">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8A6C2A]">
+          Document Ledger
+        </div>
+        <div className="text-xs font-bold text-[#1B2F4E]">
+          {documents.length} <span className="text-gray-400 font-medium">Entries</span>
+        </div>
       </div>
       
       {documents.map((doc) => (
         <div
           key={doc._id}
           onClick={() => handleViewDocument(doc)}
-          className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-indigo-300 transition cursor-pointer"
+          className="group bg-white border border-[#E2E8F0] rounded-xl p-5 hover:shadow-xl hover:border-[#8A6C2A]/50 transition-all cursor-pointer relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-3">
+          <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
-              <h3 className="text-gray-900 font-semibold text-sm line-clamp-2 mb-1">
+              <h3 className="text-[#1B2F4E] font-bold text-sm line-clamp-1 mb-1 group-hover:text-[#8A6C2A] transition-colors">
                 {doc.filename}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 {doc.contractType && `${doc.contractType} • `}
                 {formatDate(doc.createdAt)}
               </p>
             </div>
             {doc.riskScore && (
-              <div className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getRiskColor(doc.riskScore.label)}`}>
-                {doc.riskScore.label} Risk
+              <div className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter border ${getRiskColor(doc.riskScore.label)}`}>
+                {doc.riskScore.label} RISK
               </div>
             )}
           </div>
           
-          <p className="text-sm text-gray-700 line-clamp-2 mb-3 bg-gray-50 p-3 rounded">
-            {doc.summary || 'No summary available'}
-          </p>
+          <div className="bg-[#F8FAFC] border-l-2 border-[#1B2F4E] p-3 rounded-r-lg mb-4">
+            <p className="text-xs text-[#3D4F66] line-clamp-2 italic leading-relaxed">
+              "{doc.summary || 'No summary available'}"
+            </p>
+          </div>
 
-          {doc.pros && doc.pros.length > 0 && (
-            <div className="mb-2">
-              <p className="text-xs font-medium text-green-600 mb-1">✓ Strengths:</p>
-              <p className="text-xs text-gray-600 line-clamp-1">
-                {Array.isArray(doc.pros) ? (doc.pros[0].clause || doc.pros[0].explanation || doc.pros[0]) : doc.pros}
-              </p>
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {doc.pros && doc.pros.length > 0 && (
+              <div>
+                <p className="text-[9px] font-black text-green-700 uppercase tracking-widest mb-1">Positive Clauses</p>
+                <p className="text-[11px] text-gray-500 line-clamp-1 font-medium">
+                  {Array.isArray(doc.pros) ? (doc.pros[0].clause || doc.pros[0].explanation || doc.pros[0]) : doc.pros}
+                </p>
+              </div>
+            )}
+            {doc.cons && doc.cons.length > 0 && (
+              <div>
+                <p className="text-[9px] font-black text-red-700 uppercase tracking-widest mb-1">Liability Risks</p>
+                <p className="text-[11px] text-gray-500 line-clamp-1 font-medium">
+                  {Array.isArray(doc.cons) ? (doc.cons[0].clause || doc.cons[0].explanation || doc.cons[0]) : doc.cons}
+                </p>
+              </div>
+            )}
+          </div>
 
-          {doc.cons && doc.cons.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs font-medium text-red-600 mb-1">✗ Concerns:</p>
-              <p className="text-xs text-gray-600 line-clamp-1">
-                {Array.isArray(doc.cons) ? (doc.cons[0].clause || doc.cons[0].explanation || doc.cons[0]) : doc.cons}
-              </p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <span className="text-xs text-gray-500">
-              Click to view full analysis
+          <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-[#1B2F4E] transition-colors">
+              Access Full Dossier
             </span>
-            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#8A6C2A] transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>

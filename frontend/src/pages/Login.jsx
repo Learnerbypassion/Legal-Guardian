@@ -3,181 +3,132 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Login = () => {
-  const [formData, setFormData] = useState({ phone: '', password: '' });
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, error, setError } = useAuth();
+  
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError(null);
-  };
-
-  const normalizePhone = (phone) => {
-    // Remove spaces, dashes, parentheses
-    let cleaned = phone.replace(/[\s\-()]/g, '');
-    
-    // Extract country code and number
-    let countryCode = '';
-    let numberPart = '';
-    
-    if (cleaned.startsWith('+')) {
-      // Already has + prefix
-      const match = cleaned.match(/^\+(\d{1,3})(.+)/);
-      if (match) {
-        countryCode = match[1];
-        numberPart = match[2];
-      }
-    } else if (cleaned.match(/^(\d{1,3})(.+)/)) {
-      // Might have country code without +
-      const match = cleaned.match(/^(\d{1,3})(.+)/);
-      const potential = match[1];
-      const rest = match[2];
-      
-      // Check if it looks like a country code (1-3 digits, common ones: 1, 91, 44, 86, etc.)
-      if ((potential.length <= 3 && potential.length >= 1) && (rest.length >= 7)) {
-        countryCode = potential;
-        numberPart = rest;
-      } else {
-        // No country code, use default
-        numberPart = cleaned;
-      }
-    } else {
-      numberPart = cleaned;
-    }
-    
-    // If no country code detected, add India's default
-    if (!countryCode) {
-      countryCode = '91';
-    }
-    
-    return '+' + countryCode + numberPart;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.phone || !formData.password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
+    setError('');
     setLoading(true);
     try {
-      const normalizedPhone = normalizePhone(formData.phone);
-      await login(normalizedPhone, formData.password);
-      navigate('/');
+      const success = await login(phoneNumber, password);
+      if (success) {
+        navigate('/');
+      } else {
+        setError('Invalid credentials. Please try again.');
+      }
     } catch (err) {
-      // Error is handled by context
+      setError('Login failed. Please check your connection or backend server.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="text-center mb-2">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-              Legal-Tech
-            </h1>
-            <p className="text-gray-500">AI-Powered Document Analysis</p>
+    <div className="min-h-screen bg-[#F4F5F7] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-[#1B2F4E] flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xl">LG</span>
           </div>
         </div>
+        <h2 className="text-center text-3xl font-extrabold text-[#1B2F4E]">
+          Legal-Guardian
+        </h2>
+        <p className="mt-2 text-center text-sm text-[#3D4F66] font-medium">
+          AI-Powered Document Analysis
+        </p>
+      </div>
 
-        {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome Back</h2>
-          <p className="text-gray-500 text-sm mb-6">Sign in to your account to continue</p>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-10 px-4 shadow-xl border border-[#CBD2DC] sm:rounded-2xl sm:px-10">
+          <div className="mb-8 text-center">
+            <h3 className="text-xl font-bold text-[#1B2F4E]">Welcome Back</h3>
+            <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Sign in to your account to continue</p>
+          </div>
 
-          {/* Error Alert */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+              <p className="text-sm text-red-700 font-medium">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Phone Field */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1B2F4E] mb-1">
                 Phone Number
               </label>
               <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+1 (555) 000-0000"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                disabled={loading}
+                type="text"
+                placeholder="+91 0000000000"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                required
+                className="appearance-none block w-full px-4 py-3 border border-[#CBD2DC] rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
               />
             </div>
 
-            {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1B2F4E] mb-1">
                 Password
               </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="appearance-none block w-full px-4 py-3 border border-[#CBD2DC] rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
+              />
+            </div>
+
+            <div className="flex items-center justify-end">
+              <div className="text-sm">
+                <Link to="/forgot-password" size="sm" className="font-bold text-[#8A6C2A] hover:text-[#1B2F4E] transition">
+                  Forgot password?
+                </Link>
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-right">
-              <Link to="/forgot-password" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition">
-                Forgot password?
-              </Link>
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-[#1B2F4E] hover:bg-[#8A6C2A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1B2F4E] transition-all disabled:opacity-50"
+              >
+                {loading ? 'Authenticating...' : 'Sign In'}
+              </button>
             </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed mt-6"
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
           </form>
 
-          {/* Divider */}
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-3 text-gray-400 text-sm">or</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-400 font-medium">New to Legal-Guardian?</span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Link
+                to="/signup"
+                className="w-full flex justify-center py-3 px-4 border-2 border-[#1B2F4E] rounded-xl text-sm font-bold text-[#1B2F4E] hover:bg-gray-50 transition"
+              >
+                Create an Account
+              </Link>
+            </div>
           </div>
-
-          {/* Signup Link */}
-          <p className="text-center text-gray-600 text-sm">
-            Don't have an account?{' '}
-            <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-700 transition">
-              Sign up
-            </Link>
-          </p>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-gray-500 text-xs mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+        
+        <p className="mt-8 text-center text-xs text-gray-400">
+          By signing in, you agree to our <span className="underline">Terms of Service</span> and <span className="underline">Privacy Policy</span>
         </p>
       </div>
     </div>

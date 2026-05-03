@@ -27,58 +27,58 @@ export const AnalysisLoading = ({ status = 'reading' }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center relative overflow-hidden">
+      {/* Refreshed background elements using Gold/Navy palette */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-20 right-20 w-80 h-80 bg-[#FAF3E4] rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-[#1B2F4E]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="relative z-10 text-center">
-        {/* Document Icon with Animation */}
-        <div className="flex justify-center mb-8">
+        {/* Document Icon with Theme Update */}
+        <div className="flex justify-center mb-10">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-white border-4 border-indigo-200 flex items-center justify-center shadow-xl">
+            <div className="w-24 h-24 rounded-2xl bg-white border-2 border-[#CBD2DC] flex items-center justify-center shadow-2xl">
               <span className="text-5xl">📄</span>
             </div>
-            {/* Rotating border animation */}
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-600 border-r-indigo-400 animate-spin" style={{ animationDuration: '3s' }}></div>
+            {/* Rotating border animation using Gold and Navy accents */}
+            <div className="absolute -inset-2 rounded-full border-2 border-transparent border-t-[#8A6C2A] border-r-[#1B2F4E] animate-spin" style={{ animationDuration: '3s' }}></div>
           </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-4xl font-bold text-gray-900 mb-2">Analyzing Document</h2>
-        <p className="text-gray-500 text-lg mb-8">Securely processing your legal data...</p>
+        {/* Title & Tagline */}
+        <h2 className="text-4xl font-extrabold text-[#1B2F4E] mb-2 uppercase tracking-tight">Legal AI Processing</h2>
+        <p className="text-[#3D4F66] text-lg font-medium mb-12">Applying advanced risk assessment to your contract...</p>
 
-        {/* Progress Steps */}
-        <div className="space-y-4 mb-12 max-w-md mx-auto">
+        {/* Progress Steps - Logic Intact, Visuals Updated */}
+        <div className="space-y-6 mb-12 max-w-sm mx-auto">
           {steps.map((step, idx) => {
             const stepStatus = getStepStatus(step.id);
             return (
-              <div key={step.id} className="flex items-center gap-4">
+              <div key={step.id} className="flex items-center gap-5 bg-white/50 p-3 rounded-xl border border-transparent transition-all">
                 {/* Status Indicator */}
                 <div className="flex-shrink-0">
                   {stepStatus === 'completed' ? (
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-lg bg-green-600 flex items-center justify-center shadow-sm">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
                   ) : stepStatus === 'active' ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></div>
+                      <div className="w-6 h-6 rounded-lg border-2 border-[#8A6C2A] border-t-transparent animate-spin"></div>
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full border-2 border-gray-300"></div>
+                    <div className="w-6 h-6 rounded-lg border-2 border-[#CBD2DC] bg-gray-50"></div>
                   )}
                 </div>
 
-                {/* Step Label */}
-                <span className={`text-lg font-medium ${
+                {/* Step Label with theme-aware logic */}
+                <span className={`text-sm font-bold uppercase tracking-widest ${
                   stepStatus === 'completed'
-                    ? 'text-green-600'
+                    ? 'text-green-700'
                     : stepStatus === 'active'
-                    ? 'text-indigo-600'
+                    ? 'text-[#1B2F4E]'
                     : 'text-gray-400'
                 }`}>
                   {step.label}
@@ -88,19 +88,16 @@ export const AnalysisLoading = ({ status = 'reading' }) => {
           })}
         </div>
 
-        {/* Security Badge */}
-        <div className="flex items-center justify-center gap-2 text-gray-600">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 111.414 1.414L7.414 8l3.293 3.293a1 1 0 11-1.414 1.414l-4-4z" clipRule="evenodd" />
+        {/* Security Badge - Refined and Professional */}
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#1B2F4E] text-[#FAF3E4] rounded-full shadow-lg border border-[#8A6C2A]/30">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
           </svg>
-          <span className="text-sm font-medium tracking-widest uppercase">AES-256 ENCRYPTED ENVIRONMENT</span>
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 11-1.414-1.414L12.586 12l-3.293-3.293a1 1 0 111.414-1.414l4 4z" clipRule="evenodd" />
-          </svg>
+          <span className="text-[10px] font-black tracking-[0.2em] uppercase">AES-256 Encrypted Protocol</span>
         </div>
 
-        {/* Floating dots animation (bottom right) */}
-        <div className="absolute bottom-8 right-8 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+        {/* Aesthetic Accents */}
+        <div className="absolute bottom-10 left-10 w-2 h-2 bg-[#8A6C2A] rounded-full animate-ping"></div>
       </div>
     </div>
   );

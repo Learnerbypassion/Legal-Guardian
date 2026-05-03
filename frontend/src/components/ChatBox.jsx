@@ -32,7 +32,7 @@ export default function ChatBox({ contractText, language = "English" }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Initialize Web Speech API
+  // Logic: Web Speech API initialization (UNTOUCHED)
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition && !recognitionRef.current) {
@@ -76,7 +76,6 @@ export default function ChatBox({ contractText, language = "English" }) {
       toast.error("Voice input not supported in your browser");
       return;
     }
-
     if (isRecording) {
       recognitionRef.current.stop();
     } else {
@@ -85,17 +84,13 @@ export default function ChatBox({ contractText, language = "English" }) {
   };
 
   const send = async (question) => {
-    // Check if user is authenticated
     if (!user) {
       toast.error("Please sign in to use chat");
       navigate("/login");
       return;
     }
-
-    // Check if contractText is available
     if (!contractText || contractText.trim().length < 10) {
       toast.error("Contract text is not available. Please reload the page.");
-      console.error("Invalid contractText:", contractText);
       return;
     }
 
@@ -108,25 +103,15 @@ export default function ChatBox({ contractText, language = "English" }) {
     setLoading(true);
 
     try {
-      // Build chat history excluding the initial assistant message
       const history = messages
-        .filter((m, idx) => idx > 0) // Skip the initial greeting
+        .filter((m, idx) => idx > 0)
         .map((m) => ({ role: m.role, content: m.content }));
-
-      console.log("Sending to API:", {
-        contractText: contractText.substring(0, 100) + "...",
-        question: q,
-        historyLength: history.length,
-        language,
-      });
 
       const response = await askQuestion({ contractText, question: q, history, language });
       const answer = response.answer || response.data?.answer || "No response received";
       
       setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
-      toast.success("Got response!");
     } catch (error) {
-      console.error("Chat error:", error);
       const errorMsg = error?.response?.data?.error || error?.message || "Failed to get answer";
       toast.error(errorMsg);
       setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't answer that. Please try again." }]);
@@ -136,7 +121,7 @@ export default function ChatBox({ contractText, language = "English" }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden flex flex-col h-full">
+    <div className="bg-white rounded-2xl shadow-xl border border-[#CBD2DC] overflow-hidden flex flex-col h-full">
       <style>{`
         @keyframes bounce-dots {
           0%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -147,68 +132,68 @@ export default function ChatBox({ contractText, language = "English" }) {
         .dot-3 { animation: bounce-dots 1s infinite 0.3s; }
       `}</style>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
+      {/* Header - Navy & Gold Theme */}
+      <div className="bg-[#1B2F4E] px-6 py-5 border-b border-[#8A6C2A]/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-            <h3 className="text-white font-semibold text-lg">Ask Legal Guardian</h3>
+            <div className="w-2.5 h-2.5 rounded-full bg-[#8A6C2A] animate-pulse shadow-[0_0_8px_#8A6C2A]" />
+            <h3 className="text-[#FAF3E4] font-bold text-sm uppercase tracking-widest">Legal Assistant</h3>
           </div>
-          <span className="px-3 py-1 bg-white bg-opacity-20 text-white text-xs font-semibold rounded-full">
-            AI Assistant
+          <span className="px-3 py-1 bg-[#8A6C2A] text-white text-[10px] font-black uppercase tracking-tighter rounded-md">
+            AI POWERED
           </span>
         </div>
       </div>
 
       {!user ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#F8FAFC]">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
-              <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#FAF3E4] border border-[#8A6C2A]/20 mb-6 shadow-sm">
+              <svg className="w-8 h-8 text-[#1B2F4E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <p className="text-gray-700 font-semibold mb-2">Sign in to chat</p>
-            <p className="text-sm text-gray-600 mb-6">Ask questions about your contract with AI assistance</p>
+            <p className="text-[#1B2F4E] font-bold text-lg mb-2">Secure Chat Locked</p>
+            <p className="text-sm text-[#3D4F66] mb-8 max-w-[200px] mx-auto">Please sign in to access AI contract interrogation.</p>
             <button
               onClick={() => navigate("/login")}
-              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-medium"
+              className="w-full py-3 bg-[#1B2F4E] text-white rounded-xl hover:bg-[#8A6C2A] transition-all font-bold uppercase tracking-widest text-xs shadow-md"
             >
-              Sign In Now
+              Sign In to Interrogate
             </button>
           </div>
         </div>
       ) : !contractText || contractText.trim().length < 10 ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#FFF9F9]">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-50 border border-red-100 mb-6">
               <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-gray-700 font-semibold mb-2">Contract not loaded</p>
-            <p className="text-sm text-gray-600 mb-6">Please reload the page or upload a new document</p>
+            <p className="text-[#1B2F4E] font-bold text-lg mb-2">No Context Found</p>
+            <p className="text-sm text-[#3D4F66] mb-8">The AI requires a document to provide legal insights.</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-medium"
+              className="px-8 py-3 border-2 border-[#1B2F4E] text-[#1B2F4E] rounded-xl hover:bg-[#1B2F4E] hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
             >
-              Reload Page
+              Reload Source
             </button>
           </div>
         </div>
       ) : (
         <>
-          {/* Quick Questions */}
+          {/* Quick Questions - Refreshed Pills */}
           {messages.length === 1 && (
-            <div className="px-6 py-4 border-b border-gray-200">
-              <p className="text-xs text-gray-600 font-semibold mb-3 uppercase">Quick Questions</p>
+            <div className="px-6 py-5 border-b border-[#F1F5F9] bg-[#F8FAFC]">
+              <p className="text-[10px] text-[#8A6C2A] font-black mb-4 uppercase tracking-[0.2em]">Suggested Inquiries</p>
               <div className="flex flex-wrap gap-2">
                 {QUICK_QUESTIONS.map((q) => (
                   <button
                     key={q}
                     onClick={() => send(q)}
                     disabled={loading}
-                    className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-indigo-100 hover:text-indigo-700 transition font-medium disabled:opacity-50"
+                    className="px-4 py-2 text-[11px] bg-white text-[#1B2F4E] border border-[#CBD2DC] rounded-lg hover:border-[#8A6C2A] hover:text-[#8A6C2A] transition-all font-bold shadow-sm disabled:opacity-50"
                   >
                     {q}
                   </button>
@@ -217,28 +202,28 @@ export default function ChatBox({ contractText, language = "English" }) {
             </div>
           )}
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Messages - Professional Bubbles */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FDFDFD]">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                  className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-sm ${
                     msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-br-none"
-                      : "bg-gray-100 text-gray-900 rounded-bl-none"
+                      ? "bg-[#1B2F4E] text-[#FAF3E4] rounded-tr-none"
+                      : "bg-[#F1F5F9] text-[#1B2F4E] border border-[#E2E8F0] rounded-tl-none font-medium"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-900 px-4 py-3 rounded-lg rounded-bl-none">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gray-400 dot-1" />
-                    <div className="w-2 h-2 rounded-full bg-gray-400 dot-2" />
-                    <div className="w-2 h-2 rounded-full bg-gray-400 dot-3" />
+                <div className="bg-[#F1F5F9] px-5 py-4 rounded-2xl rounded-tl-none border border-[#E2E8F0]">
+                  <div className="flex gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#8A6C2A] dot-1" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#8A6C2A] dot-2" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#8A6C2A] dot-3" />
                   </div>
                 </div>
               </div>
@@ -246,52 +231,44 @@ export default function ChatBox({ contractText, language = "English" }) {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 p-4 space-y-3">
-            {/* Voice Input Transcript Display */}
+          {/* Input Area - Clean & Corporate */}
+          <div className="border-t border-[#E2E8F0] p-5 space-y-4 bg-white">
             {transcript && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-600 font-semibold mb-1">Voice Input:</p>
-                <p className="text-sm text-blue-900">{transcript}</p>
+              <div className="bg-[#FAF3E4] border border-[#8A6C2A]/20 rounded-xl p-3 animate-pulse">
+                <p className="text-[10px] text-[#8A6C2A] font-black mb-1 uppercase tracking-widest">Listening...</p>
+                <p className="text-sm text-[#1B2F4E] italic font-medium">"{transcript}"</p>
               </div>
             )}
 
-            {/* Input Controls */}
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
-                placeholder="Ask about the contract…"
+                placeholder="Inquire about a specific clause..."
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50"
+                className="flex-1 px-5 py-3.5 bg-[#F8FAFC] border border-[#CBD2DC] rounded-xl text-sm font-medium focus:outline-none focus:border-[#1B2F4E] focus:ring-1 focus:ring-[#1B2F4E] disabled:bg-gray-100 transition-all placeholder:text-gray-400"
               />
               <button
                 onClick={toggleVoiceInput}
                 disabled={loading}
-                className={`px-3 py-2.5 rounded-lg transition flex items-center justify-center ${
+                className={`w-12 h-12 rounded-xl transition-all flex items-center justify-center border-2 ${
                   isRecording
-                    ? "bg-red-600 text-white hover:bg-red-700"
-                    : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+                    ? "bg-red-600 border-red-600 text-white animate-pulse"
+                    : "bg-white border-[#CBD2DC] text-[#3D4F66] hover:border-[#1B2F4E] hover:text-[#1B2F4E]"
                 }`}
-                title="Voice input"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
                 </svg>
               </button>
               <button
                 onClick={() => send()}
                 disabled={!input.trim() || loading}
-                className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="px-6 h-12 bg-[#1B2F4E] text-white rounded-xl hover:bg-[#8A6C2A] transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center shadow-md group"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9-9m0 0l-9-9m9 9H3" />
                 </svg>
               </button>
@@ -302,4 +279,3 @@ export default function ChatBox({ contractText, language = "English" }) {
     </div>
   );
 }
-
