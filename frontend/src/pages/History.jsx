@@ -19,152 +19,167 @@ export const History = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">IX</span>
-              </div>
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                Legal-Tech
-              </h1>
+    <div className="min-h-screen bg-[#F4F5F7]">
+
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-40 bg-white border-b border-[#CBD2DC] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+          {/* Logo */}
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+            <div className="w-9 h-9 bg-[#1B2F4E] rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-sm">LG</span>
             </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <button
-                onClick={() => navigate('/')}
-                className="text-gray-600 hover:text-gray-900 font-medium transition"
-              >
-                Dashboard
-              </button>
-              {user && (
-                <>
-                  <button
-                    onClick={() => navigate('/history')}
-                    className="text-gray-600 hover:text-gray-900 font-medium transition"
-                  >
-                    History
-                  </button>
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="text-gray-600 hover:text-gray-900 font-medium transition"
-                  >
-                    Profile
-                  </button>
-                </>
-              )}
-              {user ? (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="hidden sm:block">
-                      <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="text-gray-600 hover:text-gray-900 font-medium transition"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => navigate('/signup')}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
-                  >
-                    Sign Up
-                  </button>
-                </>
-              )}
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <h1 className="text-lg font-bold text-[#1B2F4E] hidden sm:block">Legal-Guardian</h1>
           </div>
 
-          {/* Mobile Menu */}
-          {showMenu && (
-            <div className="md:hidden pb-4 border-t border-gray-200">
-              <button
-                onClick={() => handleNavigation('/')}
-                className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
-              >
-                Dashboard
-              </button>
-              {user && (
-                <>
-                  <button
-                    onClick={() => handleNavigation('/history')}
-                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
-                  >
-                    History
-                  </button>
-                  <button
-                    onClick={() => handleNavigation('/profile')}
-                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
-                  >
-                    Profile
-                  </button>
-                </>
-              )}
-              {user ? (
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <button
+                onClick={() => navigate('/')}
+                className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm"
+              >Dashboard
+            </button>
+
+            <button
+                onClick={() => navigate('/history')}
+                className="text-[#1B2F4E] font-semibold text-sm"
+              >History
+            </button>
+
+            <button
+                onClick={() => navigate('/profile')}
+                className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm"
+              >Profile
+            </button>
+
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+            >
+              GitHub
+            </a>
+          </nav>
+
+          {/* Right: user pill + logout (desktop) */}
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 bg-gray-50 p-1 pr-3 rounded-full border border-gray-100 max-w-[200px]">
+                  <div className="w-8 h-8 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#1B2F4E] truncate leading-tight">{user?.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate leading-tight">{user?.email}</p>
+                  </div>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium"
+                  className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold text-sm shadow-sm whitespace-nowrap"
                 >
                   Logout
                 </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">Sign In</button>
+                <button onClick={() => navigate('/signup')} className="px-4 py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#15253d] transition font-bold text-sm shadow-md">Sign Up</button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition text-[#1B2F4E]"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMenu
+                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              }
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile menu dropdown */}
+        {showMenu && (
+          <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
+            {user && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-3">
+                <div className="w-9 h-9 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#1B2F4E] truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+            )}
+            <button onClick={() => handleNavigation('/')} 
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+                >Dashboard
+              </button>
+
+            <button onClick={() => handleNavigation('/history')} 
+              className="block w-full text-left px-3 py-2.5 text-[#1B2F4E] bg-[#FAF3E4] rounded-lg font-semibold text-sm"
+                >History
+              </button>
+
+            <button onClick={() => handleNavigation('/profile')} 
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+                >Profile
+              </button>
+
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+            >
+              GitHub ↗
+            </a>
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              {user ? (
+                <button onClick={handleLogout} className="block w-full text-left px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-semibold text-sm transition">Logout</button>
               ) : (
-                <>
-                  <button
-                    onClick={() => handleNavigation('/login')}
-                    className="block w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 font-medium"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => handleNavigation('/signup')}
-                    className="block w-full text-left px-4 py-2 text-indigo-600 hover:bg-indigo-50 font-medium"
-                  >
-                    Sign Up
-                  </button>
-                </>
+                <div className="flex gap-2">
+                  <button onClick={() => handleNavigation('/login')} 
+                    className="flex-1 px-3 py-2.5 border border-[#CBD2DC] text-[#1B2F4E] rounded-lg font-medium text-sm text-center"
+                      >Sign In
+                    </button>
+
+                  <button onClick={() => handleNavigation('/signup')} 
+                    className="flex-1 px-3 py-2.5 bg-[#1B2F4E] text-white rounded-lg font-bold text-sm text-center"
+                      >Sign Up
+                    </button>
+                    
+                </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Your Document History</h2>
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-          <HistoryTab />
+      {/* MAIN CONTENT */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-extrabold text-[#1B2F4E] mb-8">
+          Your Document History
+        </h2>
+
+        <div className="bg-white rounded-2xl shadow-xl border border-[#CBD2DC] overflow-hidden">
+          <div className="p-4 bg-[#F9FAFB] border-b border-[#E5E7EB]">
+            <span className="text-xs font-bold text-[#8A6C2A] uppercase tracking-wider">
+              Secure Analysis Archive
+            </span>
+          </div>
+
+          <div className="p-6">
+            <HistoryTab />
+          </div>
         </div>
       </main>
     </div>

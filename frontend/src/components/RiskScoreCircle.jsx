@@ -9,7 +9,7 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
     color = '#ca8a04'; // Refined gold-amber
   }
 
-  const radius = 60;
+  const radius = 80;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
 

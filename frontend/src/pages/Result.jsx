@@ -12,7 +12,7 @@ export const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
-  
+
   let resultData = location.state;
   if (!resultData) {
     const storedData = localStorage.getItem('lastAnalysis');
@@ -28,8 +28,9 @@ export const Result = () => {
       }
     }
   }
-  
+
   const { result, documentId, fileName, isUnauthenticated, contractText } = resultData || {};
+  const resolvedContractText = contractText || localStorage.getItem('contractText') || '';
   const [activeTab, setActiveTab] = useState('summary');
   const [showMenu, setShowMenu] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -117,67 +118,158 @@ export const Result = () => {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#CBD2DC] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
-              <div className="w-10 h-10 rounded-lg bg-[#1B2F4E] flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">LG</span>
-              </div>
-              <h1 className="text-2xl font-bold text-[#1B2F4E]">
-                Legal-Guardian
-              </h1>
-            </div>
 
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => handleNavigation('/')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition">
-                Dashboard
-              </button>
-              {user && (
-                <>
-                  <button onClick={() => navigate('/history')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition">
-                    History
-                  </button>
-                  <button onClick={() => navigate('/profile')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition">
-                    Profile
-                  </button>
-                </>
-              )}
-              {user ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3 bg-gray-50 p-1 pr-3 rounded-full border border-gray-100">
-                    <div className="w-8 h-8 rounded-full bg-[#1B2F4E] flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="text-sm font-semibold text-[#1B2F4E]">{user?.name}</span>
-                  </div>
-                  <button onClick={handleLogout} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium text-sm">
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <button onClick={() => navigate('/login')} className="text-[#3D4F66] font-medium">Sign In</button>
-                  <button onClick={() => navigate('/signup')} className="px-4 py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#15253d] transition font-medium">
-                    Sign Up
-                  </button>
-                </div>
-              )}
-            </nav>
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-40 bg-white border-b border-[#CBD2DC] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+          {/* Logo */}
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+            <div className="w-9 h-9 bg-[#1B2F4E] rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-sm">LG</span>
+            </div>
+            <h1 className="text-lg font-bold text-[#1B2F4E] hidden sm:block">Legal-Guardian</h1>
           </div>
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <button
+              onClick={() => navigate('/')}
+              className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm"
+            >Dashboard
+            </button>
+
+            <button
+              onClick={() => navigate('/history')}
+              className="text-[#1B2F4E] font-semibold text-sm"
+            >History
+            </button>
+
+            <button
+              onClick={() => navigate('/profile')}
+              className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm"
+            >Profile
+            </button>
+
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+            >
+              GitHub
+            </a>
+          </nav>
+
+          {/* Right: user pill + logout (desktop) */}
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 bg-gray-50 p-1 pr-3 rounded-full border border-gray-100 max-w-[200px]">
+                  <div className="w-8 h-8 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#1B2F4E] truncate leading-tight">{user?.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate leading-tight">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold text-sm shadow-sm whitespace-nowrap"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">Sign In</button>
+                <button onClick={() => navigate('/signup')} className="px-4 py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#15253d] transition font-bold text-sm shadow-md">Sign Up</button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition text-[#1B2F4E]"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMenu
+                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              }
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile menu dropdown */}
+        {showMenu && (
+          <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
+            {user && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-3">
+                <div className="w-9 h-9 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#1B2F4E] truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+            )}
+            <button onClick={() => handleNavigation('/')}
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+            >Dashboard
+            </button>
+
+            <button onClick={() => handleNavigation('/history')}
+              className="block w-full text-left px-3 py-2.5 text-[#1B2F4E] bg-[#FAF3E4] rounded-lg font-semibold text-sm"
+            >History
+            </button>
+
+            <button onClick={() => handleNavigation('/profile')}
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+            >Profile
+            </button>
+
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+            >
+              GitHub ↗
+            </a>
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              {user ? (
+                <button onClick={handleLogout} className="block w-full text-left px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-semibold text-sm transition">Logout</button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => handleNavigation('/login')}
+                    className="flex-1 px-3 py-2.5 border border-[#CBD2DC] text-[#1B2F4E] rounded-lg font-medium text-sm text-center"
+                  >Sign In
+                  </button>
+
+                  <button onClick={() => handleNavigation('/signup')}
+                    className="flex-1 px-3 py-2.5 bg-[#1B2F4E] text-white rounded-lg font-bold text-sm text-center"
+                  >Sign Up
+                  </button>
+
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
+
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold text-[#1B2F4E] mb-2">Analysis Results</h2>
             <p className="text-[#3D4F66] flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-[#8A6C2A]"></span>
-               {fileName || 'Document'}
+              <span className="w-2 h-2 rounded-full bg-[#8A6C2A]"></span>
+              {fileName || 'Document'}
             </p>
           </div>
           <button
@@ -192,7 +284,7 @@ export const Result = () => {
         <div className="bg-white rounded-xl shadow-md p-8 mb-8 border border-[#CBD2DC]">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <RiskScoreCircle score={riskScore} label={riskLevel} />
-            
+
             <div className="flex flex-col justify-center space-y-6 border-l border-r border-gray-100 px-8">
               <div>
                 <p className="text-xs font-bold text-[#3D4F66] uppercase tracking-wider mb-1">Advantages</p>
@@ -208,17 +300,17 @@ export const Result = () => {
               <h4 className="font-bold text-[#8A6C2A] mb-3 flex items-center gap-2">
                 <span className="text-lg">⚖️</span> Key Information
               </h4>
+
               <ul className="space-y-3 text-sm text-[#3D4F66]">
-                {result.parties?.length > 0 && (
-                  <li><strong>Parties:</strong> {result.parties.join(', ')}</li>
+                <li><strong>Risk Level:</strong> {result.riskScore?.label || 'Unknown'}</li>
+                <li><strong>Risk Score:</strong> {result.riskScore?.score} / 10</li>
+                {result.riskScore?.detectedKeywords?.length > 0 && (
+                  <li><strong>Key Flags:</strong> {result.riskScore.detectedKeywords.join(', ')}</li>
                 )}
-                {result.contractType && (
-                  <li><strong>Document Type:</strong> {result.contractType}</li>
-                )}
-                {result.keyDates?.length > 0 && (
-                  <li><strong>Critical Dates:</strong> {result.keyDates.length} found</li>
-                )}
+                <li><strong>Advantages:</strong> {result.pros?.length || 0} found</li>
+                <li><strong>Concerns:</strong> {result.cons?.length || 0} found</li>
               </ul>
+
             </div>
           </div>
         </div>
@@ -237,11 +329,10 @@ export const Result = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-4 font-bold text-sm transition whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-b-2 border-[#1B2F4E] text-[#1B2F4E] bg-white'
-                    : 'text-[#3D4F66] hover:text-[#1B2F4E]'
-                }`}
+                className={`px-6 py-4 font-bold text-sm transition whitespace-nowrap ${activeTab === tab.id
+                  ? 'border-b-2 border-[#1B2F4E] text-[#1B2F4E] bg-white'
+                  : 'text-[#3D4F66] hover:text-[#1B2F4E]'
+                  }`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.label}
@@ -254,7 +345,7 @@ export const Result = () => {
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-[#1B2F4E]">Executive Summary</h3>
                 <div className="prose prose-slate max-w-none text-[#3D4F66] leading-relaxed">
-                  {Array.isArray(result.summary) 
+                  {Array.isArray(result.summary)
                     ? result.summary.map((p, i) => <p key={i} className="mb-4">{p}</p>)
                     : <p>{result.summary || 'No summary available'}</p>
                   }
@@ -306,14 +397,23 @@ export const Result = () => {
             )}
 
             {activeTab === 'clauses' && (
-              <div className="grid grid-cols-1 gap-4">
-                {result.highlightedClauses?.map((clause, idx) => (
-                  <div key={idx} className="bg-[#F4F5F7] rounded-lg p-5 border border-gray-200">
-                    <h4 className="font-bold text-[#1B2F4E] mb-2">{clause.title || `Highlighted Clause ${idx + 1}`}</h4>
-                    <p className="text-gray-700 text-sm font-mono bg-white p-3 rounded border border-gray-100 mb-3 italic">"{clause.text || clause}"</p>
-                    {clause.explanation && <p className="text-sm text-[#3D4F66]"><strong>Analysis:</strong> {clause.explanation}</p>}
-                  </div>
-                ))}
+              <div className="space-y-4">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                  <p className="text-amber-800 text-sm font-medium">⚠️ These clause types were automatically detected. Review each one carefully with a legal professional before signing.</p>
+                </div>
+                {result.riskScore?.detectedKeywords?.length > 0 ? (
+                  result.riskScore.detectedKeywords.map((keyword, idx) => (
+                    <div key={idx} className="bg-[#F4F5F7] rounded-lg p-5 border-l-4 border-[#1B2F4E] border border-gray-200 flex items-center gap-4">
+                      <span className="text-2xl">📄</span>
+                      <div>
+                        <h4 className="font-bold text-[#1B2F4E] capitalize">{keyword.toLowerCase().replace('indemnif', 'Indemnification')}</h4>
+                        <p className="text-sm text-[#3D4F66] mt-1">Detected in your document — consult a lawyer about this clause type.</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No flagged clauses detected.</p>
+                )}
               </div>
             )}
 
@@ -335,9 +435,8 @@ export const Result = () => {
                       <button
                         onClick={() => handleContact(prof._id)}
                         disabled={contactedIds[prof._id] === 'Sent'}
-                        className={`w-full py-2.5 rounded-lg font-bold transition ${
-                          contactedIds[prof._id] === 'Sent' ? 'bg-green-100 text-green-700' : 'bg-[#1B2F4E] text-white hover:bg-[#8A6C2A]'
-                        }`}
+                        className={`w-full py-2.5 rounded-lg font-bold transition ${contactedIds[prof._id] === 'Sent' ? 'bg-green-100 text-green-700' : 'bg-[#1B2F4E] text-white hover:bg-[#8A6C2A]'
+                          }`}
                       >
                         {contactedIds[prof._id] === 'Sent' ? '✓ Message Sent' : 'Contact Expert'}
                       </button>
@@ -379,7 +478,8 @@ export const Result = () => {
             <h3 className="text-xl font-bold text-[#1B2F4E] mb-6 flex items-center gap-2">
               <span className="p-2 bg-[#FAF3E4] rounded-lg">💬</span> Ask Questions About This Document
             </h3>
-            <ChatBox contractText={contractText || ''} language="English" />
+            <ChatBox contractText={resolvedContractText} language="English" />
+            
           </div>
         </div>
 
