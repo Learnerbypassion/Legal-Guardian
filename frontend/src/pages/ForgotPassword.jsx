@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { normalizePhoneForSubmit } from '../utils/phoneFormatter';
 
 export const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1: Enter email/phone, 2: Verify OTP, 3: Reset password
@@ -16,40 +17,17 @@ export const ForgotPassword = () => {
   const navigate = useNavigate();
 
   // Normalize phone number (Original Logic Preserved)
-  const normalizePhone = (phone) => {
-    let cleaned = phone.replace(/[\s\-()]/g, '');
-    let countryCode = '';
-    let numberPart = '';
-    
-    if (cleaned.startsWith('+')) {
-      const match = cleaned.match(/^\+(\d{1,3})(.+)/);
-      if (match) {
-        countryCode = match[1];
-        numberPart = match[2];
-      }
-    } else if (cleaned.match(/^(\d{1,3})(.+)/)) {
-      const match = cleaned.match(/^(\d{1,3})(.+)/);
-      const potential = match[1];
-      const rest = match[2];
-      
-      if ((potential.length <= 3 && potential.length >= 1) && (rest.length >= 7)) {
-        countryCode = potential;
-        numberPart = rest;
-      } else {
-        numberPart = cleaned;
-      }
-    } else {
-      numberPart = cleaned;
-    }
-    
-    if (!countryCode) {
-      countryCode = '91';
-    }
-    
-    return '+' + countryCode + numberPart;
-  };
 
   const isEmail = (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+
+  const handleContactChange = (e) => {
+    let value = e.target.value;
+    // If it looks like it's being entered as a phone number (only digits/+), clean it
+    if (!isEmail(value)) {
+      value = value.replace(/[^\d+]/g, '');
+    }
+    setContact(value);
+  };
 
   const handleRequestReset = async (e) => {
     e.preventDefault();
@@ -62,7 +40,7 @@ export const ForgotPassword = () => {
     try {
       const payload = isEmail(contact)
         ? { email: contact }
-        : { phone: normalizePhone(contact) };
+        : { phone: normalizePhoneForSubmit(contact) };
       const response = await api.post('/auth/forgot-password', payload);
       setUserId(response.data.data.userId);
       setTimer(60);
@@ -165,14 +143,21 @@ export const ForgotPassword = () => {
                   <label className="block text-[11px] font-black uppercase tracking-wider text-[#1B2F4E] mb-2">
                     Email or Phone Number
                   </label>
-                  <input
-                    type="text"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="your@email.com or 9876543210"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
-                    disabled={loading}
-                  />
+                  <div className="relative">
+                    {!isEmail(contact) && contact && (
+                      <span className="absolute left-4 top-3 text-gray-500 font-medium">+91</span>
+                    )}
+                    <input
+                      type="text"
+                      value={contact}
+                      onChange={handleContactChange}
+                      placeholder="Email: user@example.com or Phone: 98765 43210"
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition ${!isEmail(contact) && contact ? 'pl-12' : ''}`}
+                      disabled={loading}
+                      maxLength={!isEmail(contact) ? 10 : 100}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Country code +91 will be added automatically for phone numbers</p>
                 </div>
 
                 <button

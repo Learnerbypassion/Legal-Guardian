@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { normalizePhoneForSubmit, getPhoneDisplayValue } from '../utils/phoneFormatter';
 
 export const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -11,12 +12,21 @@ export const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handlePhoneChange = (e) => {
+    const input = e.target.value;
+    // Allow only digits and + symbol
+    const cleaned = input.replace(/[^\d+]/g, '');
+    setPhoneNumber(cleaned);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const success = await login(phoneNumber, password);
+      // Auto-format phone number to include country code if missing
+      const normalizedPhone = normalizePhoneForSubmit(phoneNumber);
+      const success = await login(normalizedPhone, password);
       if (success) {
         navigate('/');
       } else {
@@ -63,14 +73,19 @@ export const Login = () => {
               <label className="block text-sm font-bold text-[#1B2F4E] mb-1">
                 Phone Number
               </label>
-              <input
-                type="text"
-                placeholder="+91 0000000000"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                required
-                className="appearance-none block w-full px-4 py-3 border border-[#CBD2DC] rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-3 text-gray-500 font-medium">+91</span>
+                <input
+                  type="text"
+                  placeholder="98765 43210"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  maxLength="10"
+                  required
+                  className="appearance-none block w-full pl-12 pr-4 py-3 border border-[#CBD2DC] rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Country code +91 will be added automatically</p>
             </div>
 
             <div>

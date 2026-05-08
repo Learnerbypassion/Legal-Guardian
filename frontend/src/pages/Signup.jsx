@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { normalizePhoneForSubmit } from '../utils/phoneFormatter';
 
 export const Signup = () => {
   const [step, setStep] = useState(1); // 1: Register, 2: OTP Verification, 3: Set Password
@@ -32,7 +33,13 @@ export const Signup = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // For phone input, only allow digits and +
+    if (name === 'phone') {
+      const cleaned = value.replace(/[^\d+]/g, '');
+      setFormData(prev => ({ ...prev, [name]: cleaned }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     if (error) setError(null);
   };
 
@@ -42,39 +49,6 @@ export const Signup = () => {
 
   const validatePhone = (phone) => {
     return /^(\+\d{1,3})?[\d\s\-()]{9,}$/.test(phone);
-  };
-
-  const normalizePhone = (phone) => {
-    let cleaned = phone.replace(/[\s\-()]/g, '');
-    let countryCode = '';
-    let numberPart = '';
-    
-    if (cleaned.startsWith('+')) {
-      const match = cleaned.match(/^\+(\d{1,3})(.+)/);
-      if (match) {
-        countryCode = match[1];
-        numberPart = match[2];
-      }
-    } else if (cleaned.match(/^(\d{1,3})(.+)/)) {
-      const match = cleaned.match(/^(\d{1,3})(.+)/);
-      const potential = match[1];
-      const rest = match[2];
-      
-      if ((potential.length <= 3 && potential.length >= 1) && (rest.length >= 7)) {
-        countryCode = potential;
-        numberPart = rest;
-      } else {
-        numberPart = cleaned;
-      }
-    } else {
-      numberPart = cleaned;
-    }
-    
-    if (!countryCode) {
-      countryCode = '91';
-    }
-    
-    return '+' + countryCode + numberPart;
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -95,7 +69,7 @@ export const Signup = () => {
 
     setLoading(true);
     try {
-      const normalizedPhone = normalizePhone(formData.phone);
+      const normalizedPhone = normalizePhoneForSubmit(formData.phone);
       const data = await register(formData.email, normalizedPhone, formData.name, formData.role);
       setUserId(data.userId);
       setTimer(60); 
@@ -244,16 +218,20 @@ export const Signup = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
-                    disabled={loading}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">We'll send you an OTP via SMS</p>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-500 font-medium">+91</span>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="98765 43210"
+                      maxLength="10"
+                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition"
+                      disabled={loading}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Country code +91 will be added automatically. We'll send you an OTP via SMS</p>
                 </div>
 
                 <div>
