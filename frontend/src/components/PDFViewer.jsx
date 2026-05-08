@@ -1,9 +1,25 @@
 import { useState } from "react";
 
+
 const TYPE_COLORS = {
-  risk: { bg: "rgba(239, 68, 68, 0.08)", border: "rgba(239, 68, 68, 0.25)", text: "#fca5a5", dot: "#ef4444" },
-  benefit: { bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.25)", text: "#86efac", dot: "#22c55e" },
-  neutral: { bg: "rgba(107, 114, 128, 0.08)", border: "rgba(107, 114, 128, 0.25)", text: "#9ca3af", dot: "#6b7280" },
+  risk: { 
+    bg: "rgba(220, 38, 38, 0.05)", // Softened red for critical items
+    border: "rgba(220, 38, 38, 0.2)", 
+    text: "#ef4444", 
+    dot: "#dc2626" 
+  },
+  benefit: { 
+    bg: "rgba(34, 197, 94, 0.05)", 
+    border: "rgba(34, 197, 94, 0.2)", 
+    text: "#22c55e", 
+    dot: "#16a34a" 
+  },
+  neutral: { 
+    bg: "rgba(138, 108, 42, 0.05)", // Gold-tinted neutral
+    border: "rgba(138, 108, 42, 0.2)", 
+    text: "#8A6C2A", 
+    dot: "#8A6C2A" 
+  },
 };
 
 export default function PDFViewer({ highlightedClauses = [] }) {
@@ -13,8 +29,8 @@ export default function PDFViewer({ highlightedClauses = [] }) {
 
   return (
     <div style={styles.card}>
-      <h3 style={styles.heading}>Highlighted Clauses</h3>
-      <p style={styles.sub}>Key sections identified in your contract</p>
+      <h3 style={styles.heading}>Contract Dossier</h3>
+      <p style={styles.sub}>High-priority clauses identified by Legal Guardian AI</p>
 
       <div style={styles.list}>
         {highlightedClauses.map((clause, i) => {
@@ -26,8 +42,8 @@ export default function PDFViewer({ highlightedClauses = [] }) {
               key={i}
               style={{
                 ...styles.item,
-                background: colors.bg,
-                borderColor: isOpen ? colors.border : "transparent",
+                background: isOpen ? colors.bg : "transparent",
+                borderColor: isOpen ? colors.border : "#E2E8F0",
                 borderWidth: "1px",
                 borderStyle: "solid",
               }}
@@ -38,14 +54,21 @@ export default function PDFViewer({ highlightedClauses = [] }) {
               >
                 <div style={styles.toggleLeft}>
                   <div style={{ ...styles.typeDot, background: colors.dot }} />
-                  <p style={{ ...styles.clauseTitle, color: colors.text }}>{clause.title}</p>
-                  <span style={{ ...styles.typeBadge, color: colors.text, borderColor: `${colors.dot}44`, background: `${colors.dot}11` }}>
+                  <p style={{ ...styles.clauseTitle, color: isOpen ? "#1B2F4E" : "#3D4F66" }}>
+                    {clause.title}
+                  </p>
+                  <span style={{ 
+                    ...styles.typeBadge, 
+                    color: colors.dot, 
+                    borderColor: `${colors.dot}44`, 
+                    background: `${colors.dot}11` 
+                  }}>
                     {clause.type}
                   </span>
                 </div>
                 <svg
                   width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke={colors.dot} strokeWidth="2"
+                  stroke={isOpen ? "#8A6C2A" : "#94A3B8"} strokeWidth="2"
                   style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
                 >
                   <polyline points="6 9 12 15 18 9" />
@@ -72,30 +95,54 @@ export default function PDFViewer({ highlightedClauses = [] }) {
 
 const styles = {
   card: {
-    background: "#111827", border: "1px solid #1f2937",
-    borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "16px",
+    background: "#FFFFFF", 
+    border: "1px solid #E2E8F0",
+    borderRadius: "24px", 
+    padding: "32px", 
+    display: "flex", 
+    flexDirection: "column", 
+    gap: "20px",
+    boxShadow: "0 4px 20px rgba(27, 47, 78, 0.05)"
   },
-  heading: { color: "#e8eaf0", fontSize: "16px", fontWeight: 600 },
-  sub: { color: "#6b7280", fontSize: "13px", marginTop: "-8px" },
-  list: { display: "flex", flexDirection: "column", gap: "8px" },
-  item: { borderRadius: "12px", overflow: "hidden", transition: "border-color 0.2s" },
+  heading: { 
+    color: "#1B2F4E", 
+    fontSize: "14px", 
+    fontWeight: 800, 
+    textTransform: "uppercase", 
+    letterSpacing: "0.1em" 
+  },
+  sub: { 
+    color: "#64748B", 
+    fontSize: "12px", 
+    marginTop: "-12px",
+    fontWeight: 500
+  },
+  list: { display: "flex", flexDirection: "column", gap: "12px" },
+  item: { borderRadius: "16px", overflow: "hidden", transition: "all 0.3s ease" },
   toggle: {
     width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "14px 16px", background: "transparent", border: "none", cursor: "pointer",
+    padding: "16px 20px", background: "transparent", border: "none", cursor: "pointer",
     gap: "10px",
   },
-  toggleLeft: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" },
-  typeDot: { width: "8px", height: "8px", borderRadius: "50%", flexShrink: 0 },
-  clauseTitle: { fontSize: "13px", fontWeight: 600, fontFamily: "'DM Mono', monospace", textAlign: "left" },
+  toggleLeft: { display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" },
+  typeDot: { width: "6px", height: "6px", borderRadius: "50%", flexShrink: 0 },
+  clauseTitle: { 
+    fontSize: "13px", 
+    fontWeight: 700, 
+    fontFamily: "inherit", 
+    textAlign: "left",
+    letterSpacing: "-0.01em"
+  },
   typeBadge: {
-    padding: "2px 8px", borderRadius: "100px", fontSize: "10px",
-    fontFamily: "'DM Mono', monospace", border: "1px solid", textTransform: "uppercase",
+    padding: "2px 10px", borderRadius: "6px", fontSize: "9px",
+    fontWeight: 800, border: "1px solid", textTransform: "uppercase",
+    letterSpacing: "0.05em"
   },
-  expanded: { padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: "10px" },
+  expanded: { padding: "0 20px 20px", display: "flex", flexDirection: "column", gap: "14px" },
   clauseText: {
-    padding: "10px 14px", borderLeft: "3px solid", borderRadius: "0 8px 8px 0",
-    background: "rgba(0,0,0,0.2)",
+    padding: "14px 18px", borderLeft: "4px solid", borderRadius: "4px 12px 12px 4px",
+    background: "#F8FAFC",
   },
-  clauseTextContent: { color: "#9ca3af", fontSize: "13px", fontStyle: "italic", lineHeight: 1.6 },
-  explanation: { color: "#d1d5db", fontSize: "13px", lineHeight: 1.6, paddingLeft: "2px" },
+  clauseTextContent: { color: "#475569", fontSize: "13px", fontStyle: "italic", lineHeight: 1.7 },
+  explanation: { color: "#1B2F4E", fontSize: "13px", lineHeight: 1.7, paddingLeft: "4px", fontWeight: 500 },
 };

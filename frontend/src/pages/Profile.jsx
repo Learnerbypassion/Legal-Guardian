@@ -2,27 +2,50 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/* ── Small UI helpers ── */
+const Label = ({ children }) => (
+  <p className="text-xs text-[#8A6C2A] font-bold mb-1 uppercase tracking-wide">{children}</p>
+);
+
+const Value = ({ children }) => (
+  <p className="text-[#1B2F4E] font-medium">{children || 'Not set'}</p>
+);
+
+const Status = ({ verified }) => (
+  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full font-semibold ${verified ? 'bg-green-100 text-green-700' : 'bg-[#FAF3E4] text-[#8A6C2A]'}`}>
+    <span className={`w-2 h-2 rounded-full ${verified ? 'bg-green-500' : 'bg-[#C9A84C]'}`} />
+    {verified ? 'Verified' : 'Pending'}
+  </span>
+);
+
+/* ── Main Component ── */
 export const Profile = () => {
   const { user, logout, sendEmailOTP, verifyEmailOTP } = useAuth();
   const navigate = useNavigate();
 
+  const [showMenu, setShowMenu] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+
   const [profDetails, setProfDetails] = React.useState({
     education: user?.professionalDetails?.education || '',
     experience: user?.professionalDetails?.experience || '',
     credentials: user?.professionalDetails?.credentials || '',
     profession: user?.professionalDetails?.profession || 'Lawyer',
   });
+
   const [message, setMessage] = React.useState('');
-  
   const [emailVerifying, setEmailVerifying] = React.useState(false);
   const [emailOtp, setEmailOtp] = React.useState('');
-  const [otpSent, setOtpSent] = React.useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setShowMenu(false);
   };
 
   const handleSendEmailOtp = async () => {
@@ -30,7 +53,6 @@ export const Profile = () => {
       setLoading(true);
       setMessage('');
       await sendEmailOTP();
-      setOtpSent(true);
       setEmailVerifying(true);
       setMessage('OTP sent to your email.');
     } catch (err) {
@@ -46,7 +68,6 @@ export const Profile = () => {
       setMessage('');
       await verifyEmailOTP(emailOtp);
       setEmailVerifying(false);
-      setOtpSent(false);
       setEmailOtp('');
       setMessage('Email verified successfully!');
     } catch (err) {
@@ -66,7 +87,7 @@ export const Profile = () => {
       setMessage('');
       const { updateProfile } = await import('../services/api');
       await updateProfile(profDetails);
-      setMessage('Profile updated successfully! Refresh to see changes.');
+      setMessage('Profile updated successfully! Refresh to see the changes.');
       setEditing(false);
     } catch (err) {
       setMessage(err.response?.data?.error || 'Failed to update profile');
@@ -75,106 +96,188 @@ export const Profile = () => {
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-            Profile
-          </h1>
+    <div className="min-h-screen bg-[#F4F5F7]">
+      {/* ── NAVBAR ── */}
+      <header className="sticky top-0 z-40 bg-white border-b border-[#CBD2DC] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+ 
+          {/* Logo */}
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+            <div className="w-9 h-9 bg-[#1B2F4E] rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-sm">LG</span>
+            </div>
+            <h1 className="text-lg font-bold text-[#1B2F4E] hidden sm:block">Legal-Guardian</h1>
+          </div>
+ 
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <button onClick={() => navigate('/')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">Dashboard</button>
+            <button onClick={() => navigate('/history')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">History</button>
+            <button onClick={() => navigate('/profile')} className="text-[#1B2F4E] font-semibold text-sm">Profile</button>
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+            >
+              GitHub
+            </a>
+          </nav>
+ 
+          {/* Right: user pill + logout (desktop) */}
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 bg-gray-50 p-1 pr-3 rounded-full border border-gray-100 max-w-[200px]">
+                  <div className="w-8 h-8 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#1B2F4E] truncate leading-tight">{user?.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate leading-tight">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold text-sm shadow-sm whitespace-nowrap"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">Sign In</button>
+                <button onClick={() => navigate('/signup')} className="px-4 py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#15253d] transition font-bold text-sm shadow-md">Sign Up</button>
+              </>
+            )}
+          </div>
+ 
+          {/* Mobile hamburger */}
           <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            onClick={() => setShowMenu(!showMenu)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition text-[#1B2F4E]"
           >
-            Logout
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMenu
+                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              }
+            </svg>
           </button>
         </div>
-      </div>
+ 
+        {/* Mobile menu dropdown */}
+        {showMenu && (
+          <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
+            {user && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-3">
+                <div className="w-9 h-9 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">{user?.name?.charAt(0)?.toUpperCase()}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#1B2F4E] truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+            )}
+            <button onClick={() => handleNavigation('/')} className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition">Dashboard</button>
+            <button onClick={() => handleNavigation('/history')} className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition">History</button>
+            <button onClick={() => handleNavigation('/profile')} className="block w-full text-left px-3 py-2.5 text-[#1B2F4E] bg-[#FAF3E4] rounded-lg font-semibold text-sm">Profile</button>
+            <a
+              href="https://github.com/Learnerbypassion/Legal-Gurdian"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+            >
+              GitHub ↗
+            </a>
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              {user ? (
+                <button onClick={handleLogout} className="block w-full text-left px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-semibold text-sm transition">Logout</button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => handleNavigation('/login')} className="flex-1 px-3 py-2.5 border border-[#CBD2DC] text-[#1B2F4E] rounded-lg font-medium text-sm text-center">Sign In</button>
+                  <button onClick={() => handleNavigation('/signup')} className="flex-1 px-3 py-2.5 bg-[#1B2F4E] text-white rounded-lg font-bold text-sm text-center">Sign Up</button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Messages */}
-        {message && !editing && (
-          <div className={`p-4 mb-6 rounded-lg text-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+      {/* ── CONTENT ── */}
+      <div className="max-w-4xl mx-auto px-4 py-10">
+
+        {message && (
+          <div className={`p-3 mb-6 rounded ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-[#FAF3E4] text-[#8A6C2A]'}`}>
             {message}
           </div>
         )}
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div className="flex items-center gap-6 mb-8">
-            {/* Avatar */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white">
-                {user.name?.charAt(0).toUpperCase()}
-              </span>
+        {/* ── PROFILE HEADER CARD ── */}
+        <div className="bg-white p-8 rounded-2xl shadow border border-[#CBD2DC] mb-8">
+          <div className="flex gap-6 mb-8">
+            <div className="w-20 h-20 bg-[#1B2F4E] rounded-xl flex items-center justify-center text-white text-3xl font-bold">
+              {user.name?.charAt(0).toUpperCase()}
             </div>
-
-            {/* Basic Info */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">{user.name}</h2>
-              <p className="text-gray-500">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
+            <div className="flex flex-col justify-center">
+              <h2 className="text-2xl font-bold text-[#1B2F4E]">{user.name}</h2>
+              <p className="text-[#3D4F66]">{user.email}</p>
+              <span className="mt-1 inline-flex items-center gap-1 text-xs text-[#8A6C2A] font-semibold capitalize">
+                {user.role || 'User'}
+              </span>
             </div>
           </div>
 
-          {/* User Details */}
+          {/* ── USER DETAILS GRID ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
             {/* Left Column */}
             <div className="space-y-6">
+
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-                <p className="text-gray-900 font-medium">{user.email}</p>
+                <Label>Email</Label>
+                <Value>{user.email}</Value>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Email Verification</label>
-                <div className="flex items-center gap-2">
-                  {user.isEmailVerified ? (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <p className="text-green-600 font-medium">Verified</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <p className="text-yellow-600 font-medium">Pending</p>
-                      {!emailVerifying && (
-                        <button
-                          onClick={handleSendEmailOtp}
-                          disabled={loading}
-                          className="ml-4 text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-200 transition font-semibold"
-                        >
-                          Verify Now
-                        </button>
-                      )}
-                    </>
+                <Label>Email Verification</Label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Status verified={user.isEmailVerified} />
+                  {!user.isEmailVerified && !emailVerifying && (
+                    <button
+                      onClick={handleSendEmailOtp}
+                      disabled={loading}
+                      className="text-xs bg-[#FAF3E4] text-[#8A6C2A] border border-[#C9A84C] px-3 py-1 rounded-full hover:bg-[#C9A84C] hover:text-white transition font-semibold disabled:opacity-50"
+                    >
+                      Verify Now
+                    </button>
                   )}
                 </div>
+
                 {emailVerifying && !user.isEmailVerified && (
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
                     <input
                       type="text"
                       placeholder="Enter 6-digit OTP"
                       value={emailOtp}
                       onChange={(e) => setEmailOtp(e.target.value)}
                       maxLength="6"
-                      className="px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm w-40"
+                      className="px-3 py-1.5 border border-[#CBD2DC] rounded-lg focus:ring-[#C9A84C] focus:border-[#C9A84C] text-sm w-40 text-[#1B2F4E]"
                     />
                     <button
                       onClick={handleVerifyEmail}
                       disabled={loading || emailOtp.length !== 6}
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                      className="text-xs bg-[#1B2F4E] text-white px-3 py-1.5 rounded-lg hover:bg-[#2a4570] transition disabled:opacity-50"
                     >
                       Submit
                     </button>
                     <button
-                      onClick={() => { setEmailVerifying(false); setOtpSent(false); setMessage(''); }}
-                      className="text-xs text-gray-500 hover:text-gray-700 ml-1"
+                      onClick={() => { setEmailVerifying(false); setEmailOtp(''); setMessage(''); }}
+                      className="text-xs text-[#3D4F66] hover:text-[#1B2F4E] ml-1"
                     >
                       Cancel
                     </button>
@@ -183,123 +286,108 @@ export const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Phone Number</label>
-                <p className="text-gray-900 font-medium">{user.phone}</p>
+                <Label>Phone Number</Label>
+                <Value>{user.phone}</Value>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Phone Verification</label>
-                <div className="flex items-center gap-2">
-                  {user.isPhoneVerified ? (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <p className="text-green-600 font-medium">Verified</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <p className="text-yellow-600 font-medium">Pending</p>
-                    </>
-                  )}
-                </div>
+                <Label>Phone Verification</Label>
+                <Status verified={user.isPhoneVerified} />
               </div>
+
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
+
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">User Type</label>
-                <p className="text-gray-900 font-medium capitalize">{user.userType || 'General'}</p>
+                <Label>User Type</Label>
+                <Value>{user.userType || 'General'}</Value>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Preferred Language</label>
-                <p className="text-gray-900 font-medium">{user.preferredLanguage || 'English'}</p>
+                <Label>Preferred Language</Label>
+                <Value>{user.preferredLanguage || 'English'}</Value>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Role</label>
-                <p className="text-gray-900 font-medium capitalize">{user.role || 'User'}</p>
+                <Label>Role</Label>
+                <Value>{user.role || 'User'}</Value>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Member ID</label>
-                <p className="text-gray-900 font-mono text-sm">{user._id}</p>
+                <Label>Member ID</Label>
+                <p className="text-[#1B2F4E] font-mono text-sm break-all">{user._id}</p>
               </div>
+
             </div>
           </div>
         </div>
 
-        {/* Professional Details Section */}
+        {/* ── PROFESSIONAL DETAILS SECTION ── */}
         {user.role === 'professional' && (
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <div className="bg-white rounded-2xl shadow border border-[#CBD2DC] p-8 mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Professional Details</h3>
+              <h3 className="text-xl font-bold text-[#1B2F4E]">Professional Details</h3>
               <button
                 onClick={() => setEditing(!editing)}
-                className="px-4 py-2 text-indigo-600 font-medium border border-indigo-600 rounded-lg hover:bg-indigo-50 transition"
+                className="px-4 py-2 text-[#8A6C2A] font-semibold border border-[#C9A84C] rounded-lg hover:bg-[#FAF3E4] transition text-sm"
               >
                 {editing ? 'Cancel' : 'Edit Details'}
               </button>
             </div>
 
-            {message && (
-              <div className={`p-4 mb-4 rounded-lg text-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {message}
-              </div>
-            )}
-
             {editing ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Profession Type</label>
+                  <label className="block text-xs text-[#8A6C2A] font-bold mb-1 uppercase tracking-wide">Profession Type</label>
                   <select
                     name="profession"
                     value={profDetails.profession}
                     onChange={handleProfChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-[#CBD2DC] rounded-lg focus:ring-[#C9A84C] focus:border-[#C9A84C] text-[#1B2F4E]"
                   >
                     <option value="Lawyer">Lawyer</option>
                     <option value="CA">Chartered Accountant (CA)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Education</label>
+                  <label className="block text-xs text-[#8A6C2A] font-bold mb-1 uppercase tracking-wide">Education</label>
                   <input
                     type="text"
                     name="education"
                     value={profDetails.education}
                     onChange={handleProfChange}
                     placeholder="e.g. LLB, LLM, CA"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-[#CBD2DC] rounded-lg focus:ring-[#C9A84C] focus:border-[#C9A84C] text-[#1B2F4E]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience</label>
+                  <label className="block text-xs text-[#8A6C2A] font-bold mb-1 uppercase tracking-wide">Experience</label>
                   <input
                     type="text"
                     name="experience"
                     value={profDetails.experience}
                     onChange={handleProfChange}
                     placeholder="e.g. 5 years in Corporate Law"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-[#CBD2DC] rounded-lg focus:ring-[#C9A84C] focus:border-[#C9A84C] text-[#1B2F4E]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Credentials/License</label>
+                  <label className="block text-xs text-[#8A6C2A] font-bold mb-1 uppercase tracking-wide">Credentials / License</label>
                   <input
                     type="text"
                     name="credentials"
                     value={profDetails.credentials}
                     onChange={handleProfChange}
                     placeholder="e.g. Bar Council Number"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-[#CBD2DC] rounded-lg focus:ring-[#C9A84C] focus:border-[#C9A84C] text-[#1B2F4E]"
                   />
                 </div>
                 <button
                   onClick={handleSaveProfile}
                   disabled={loading}
-                  className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  className="w-full py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#2a4570] transition font-semibold disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Details'}
                 </button>
@@ -307,57 +395,28 @@ export const Profile = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Profession</label>
-                  <p className="text-gray-900">{user.professionalDetails?.profession || 'Not set'}</p>
+                  <Label>Profession</Label>
+                  <Value>{user.professionalDetails?.profession}</Value>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Education</label>
-                  <p className="text-gray-900">{user.professionalDetails?.education || 'Not set'}</p>
+                  <Label>Education</Label>
+                  <Value>{user.professionalDetails?.education}</Value>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Experience</label>
-                  <p className="text-gray-900">{user.professionalDetails?.experience || 'Not set'}</p>
+                  <Label>Experience</Label>
+                  <Value>{user.professionalDetails?.experience}</Value>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Credentials</label>
-                  <p className="text-gray-900">{user.professionalDetails?.credentials || 'Not set'}</p>
+                  <Label>Credentials</Label>
+                  <Value>{user.professionalDetails?.credentials}</Value>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Account Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Account Actions</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              onClick={() => navigate('/')}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
-            >
-              Back to Dashboard
-            </button>
 
-            <button
-              onClick={handleLogout}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {/* Security Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mt-8">
-          <h4 className="font-semibold text-blue-900 mb-2">Security Information</h4>
-          <ul className="text-blue-800 text-sm space-y-1">
-            <li>✓ Your password is securely hashed</li>
-            <li>✓ Your phone number is verified via SMS</li>
-            <li>✓ All data is encrypted in transit</li>
-            <li>✓ Your account is protected by JWT authentication</li>
-          </ul>
-        </div>
       </div>
     </div>
   );

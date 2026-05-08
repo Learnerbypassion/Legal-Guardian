@@ -113,23 +113,26 @@ export const EmailVerification = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
+    /* Background changed to Navy gradient */
+    <div className="min-h-screen bg-gradient-to-br from-[#1B2F4E] via-[#0F172A] to-[#1B2F4E] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-8">
           <div className="text-center mb-2">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-              Legal-Tech
+            /* Text changed to Gold accent */
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8A6C2A] to-[#D4AF37] mb-2">
+              LegalLens
             </h1>
-            <p className="text-gray-500">AI-Powered Document Analysis</p>
+            <p className="text-gray-400">AI-Powered Document Analysis</p>
           </div>
         </div>
 
         {/* Email Verification Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Verify Your Email</h2>
+          <h2 className="text-2xl font-bold text-[#1B2F4E] mb-1">Verify Your Email</h2>
           <p className="text-gray-500 text-sm mb-2">We've sent a verification code to:</p>
-          <p className="text-indigo-600 font-semibold mb-6">{userEmail || 'your email'}</p>
+          /* Highlighted with Gold */
+          <p className="text-[#8A6C2A] font-semibold mb-6">{userEmail || 'your email'}</p>
 
           {/* Error Alert */}
           {error && (
@@ -150,7 +153,8 @@ export const EmailVerification = () => {
                 value={otp}
                 onChange={handleOtpChange}
                 placeholder="000000"
-                className="w-full px-4 py-3 text-2xl text-center font-mono tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-gray-50 disabled:cursor-not-allowed"
+                /* Focus ring changed to Gold */
+                className="w-full px-4 py-3 text-2xl text-center font-mono tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A6C2A] focus:border-transparent transition disabled:bg-gray-50 disabled:cursor-not-allowed"
                 maxLength="6"
                 disabled={loading}
                 autoComplete="off"
@@ -160,7 +164,8 @@ export const EmailVerification = () => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              /* Button changed to Navy */
+              className="w-full py-3 px-4 bg-[#1B2F4E] text-white font-semibold rounded-lg hover:bg-[#16263f] transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || otp.length !== 6}
             >
               {loading ? 'Verifying...' : 'Verify Email'}
@@ -174,7 +179,8 @@ export const EmailVerification = () => {
               type="button"
               onClick={handleResendOTP}
               disabled={!canResend || loading}
-              className="text-indigo-600 font-semibold text-sm hover:text-indigo-700 hover:underline disabled:text-gray-400 disabled:cursor-not-allowed transition"
+              /* Link changed to Gold */
+              className="text-[#8A6C2A] font-semibold text-sm hover:text-[#705822] hover:underline disabled:text-gray-400 disabled:cursor-not-allowed transition"
             >
               {canResend ? 'Resend Code' : `Resend in ${timer}s`}
             </button>

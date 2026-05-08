@@ -14,50 +14,50 @@ export default function RiskScore({ riskScore }) {
 
   return (
     <div style={styles.card}>
-      <h3 style={styles.heading}>Risk Assessment</h3>
+      <h3 style={styles.heading}>Risk Analysis Report</h3>
 
       <div style={styles.body}>
         {/* Circular gauge */}
         <div style={styles.gaugeWrap}>
-          <svg width="140" height="140" viewBox="0 0 140 140">
-            {/* Track */}
-            <circle cx="70" cy="70" r={R} fill="none" stroke="#1e2635" strokeWidth="10" />
-            {/* Progress */}
-            <circle
-              cx="70" cy="70" r={R} fill="none"
-              stroke={color} strokeWidth="10"
-              strokeDasharray={C}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              transform="rotate(-90 70 70)"
-              style={{ transition: "stroke-dashoffset 1s ease" }}
-            />
-            {/* Score text */}
-            <text x="70" y="65" textAnchor="middle" fill={color}
-              style={{ fontSize: "28px", fontWeight: 700, fontFamily: "'DM Serif Display', serif" }}>
-              {score}
-            </text>
-            <text x="70" y="84" textAnchor="middle" fill="#6b7280"
-              style={{ fontSize: "11px", fontFamily: "'DM Mono', monospace" }}>
-              /10
-            </text>
-          </svg>
+          <div style={styles.svgContainer}>
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              {/* Track - Refined Slate */}
+              <circle cx="70" cy="70" r={R} fill="none" stroke="#F1F5F9" strokeWidth="12" />
+              {/* Progress - Dynamic Color */}
+              <circle
+                cx="70" cy="70" r={R} fill="none"
+                stroke={color} strokeWidth="12"
+                strokeDasharray={C}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+                transform="rotate(-90 70 70)"
+                style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
+              />
+              {/* Score text - Swapped to Navy for clarity */}
+              <text x="70" y="72" textAnchor="middle" fill="#1B2F4E"
+                style={{ fontSize: "32px", fontWeight: 900, fontFamily: "inherit" }}>
+                {score}
+              </text>
+            </svg>
+          </div>
 
-          <div style={{ ...styles.badge, background: `${color}18`, borderColor: color, color }}>
-            {label} Risk
+          <div style={{ ...styles.badge, background: `${color}12`, borderColor: `${color}33`, color }}>
+            {label} RISK LEVEL
           </div>
         </div>
 
         {/* Description */}
         <div style={styles.info}>
-          <p style={styles.description}>{description}</p>
+          <div style={styles.descContainer}>
+            <p style={styles.description}>{description}</p>
+          </div>
 
           {detectedKeywords?.length > 0 && (
             <div style={styles.keywords}>
-              <p style={styles.kwLabel}>Detected clauses:</p>
+              <p style={styles.kwLabel}>High-Risk Flags Detected:</p>
               <div style={styles.kwList}>
                 {detectedKeywords.map((kw) => (
-                  <span key={kw} style={styles.kw}>{kw}</span>
+                  <span key={kw} style={{ ...styles.kw, borderColor: `${color}22` }}>{kw}</span>
                 ))}
               </div>
             </div>
@@ -65,15 +65,15 @@ export default function RiskScore({ riskScore }) {
         </div>
       </div>
 
-      {/* Scale bar */}
+      {/* Scale bar - Corporate Styled */}
       <div style={styles.scale}>
         <div style={styles.scaleBar}>
           <div style={{ ...styles.scaleFill, width: `${percent}%`, background: color }} />
         </div>
         <div style={styles.scaleLabels}>
-          <span style={{ color: "#22c55e" }}>Low</span>
-          <span style={{ color: "#f59e0b" }}>Moderate</span>
-          <span style={{ color: "#ef4444" }}>High</span>
+          <span style={styles.labelLow}>LOW</span>
+          <span style={styles.labelMod}>MODERATE</span>
+          <span style={styles.labelHigh}>HIGH</span>
         </div>
       </div>
     </div>
@@ -82,28 +82,55 @@ export default function RiskScore({ riskScore }) {
 
 const styles = {
   card: {
-    background: "#111827", border: "1px solid #1f2937",
-    borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "20px",
+    background: "#FFFFFF", 
+    border: "1px solid #E2E8F0",
+    borderRadius: "24px", 
+    padding: "32px", 
+    display: "flex", 
+    flexDirection: "column", 
+    gap: "28px",
+    boxShadow: "0 10px 25px -5px rgba(27, 47, 78, 0.05)"
   },
-  heading: { color: "#e8eaf0", fontSize: "16px", fontWeight: 600 },
-  body: { display: "flex", gap: "24px", alignItems: "center", flexWrap: "wrap" },
-  gaugeWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" },
+  heading: { 
+    color: "#1B2F4E", 
+    fontSize: "14px", 
+    fontWeight: 800, 
+    textTransform: "uppercase", 
+    letterSpacing: "0.15em",
+    borderBottom: "1px solid #F1F5F9",
+    paddingBottom: "16px"
+  },
+  body: { display: "flex", gap: "32px", alignItems: "center", flexWrap: "wrap" },
+  gaugeWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" },
+  svgContainer: { position: "relative" },
   badge: {
-    padding: "4px 14px", borderRadius: "100px", fontSize: "13px",
-    fontWeight: 600, border: "1px solid", fontFamily: "'DM Mono', monospace",
+    padding: "6px 16px", 
+    borderRadius: "8px", 
+    fontSize: "11px",
+    fontWeight: 900, 
+    border: "1px solid", 
+    letterSpacing: "0.05em"
   },
-  info: { flex: 1, display: "flex", flexDirection: "column", gap: "14px", minWidth: "180px" },
-  description: { color: "#9ca3af", fontSize: "14px", lineHeight: 1.6 },
-  keywords: { display: "flex", flexDirection: "column", gap: "8px" },
-  kwLabel: { color: "#6b7280", fontSize: "11px", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" },
-  kwList: { display: "flex", flexWrap: "wrap", gap: "6px" },
+  info: { flex: 1, display: "flex", flexDirection: "column", gap: "18px", minWidth: "220px" },
+  descContainer: { borderLeft: "3px solid #8A6C2A", paddingLeft: "16px" },
+  description: { color: "#475569", fontSize: "14px", lineHeight: 1.7, fontWeight: 500 },
+  keywords: { display: "flex", flexDirection: "column", gap: "10px" },
+  kwLabel: { color: "#1B2F4E", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" },
+  kwList: { display: "flex", flexWrap: "wrap", gap: "8px" },
   kw: {
-    padding: "3px 10px", borderRadius: "6px", fontSize: "12px",
-    background: "rgba(239, 68, 68, 0.1)", color: "#fca5a5",
-    border: "1px solid rgba(239, 68, 68, 0.2)", fontFamily: "'DM Mono', monospace",
+    padding: "4px 12px", 
+    borderRadius: "6px", 
+    fontSize: "11px",
+    background: "#F8FAFC", 
+    color: "#1B2F4E",
+    border: "1px solid #E2E8F0", 
+    fontWeight: 700
   },
-  scale: { display: "flex", flexDirection: "column", gap: "6px" },
-  scaleBar: { height: "6px", background: "#1e2635", borderRadius: "3px", overflow: "hidden" },
-  scaleFill: { height: "100%", borderRadius: "3px", transition: "width 1s ease" },
-  scaleLabels: { display: "flex", justifyContent: "space-between", fontSize: "11px", fontFamily: "'DM Mono', monospace" },
+  scale: { display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px" },
+  scaleBar: { height: "8px", background: "#F1F5F9", borderRadius: "4px", overflow: "hidden" },
+  scaleFill: { height: "100%", borderRadius: "4px", transition: "width 1.5s cubic-bezier(0.4, 0, 0.2, 1)" },
+  scaleLabels: { display: "flex", justifyContent: "space-between", fontSize: "9px", fontWeight: 800, letterSpacing: "0.05em" },
+  labelLow: { color: "#16a34a" },
+  labelMod: { color: "#ca8a04" },
+  labelHigh: { color: "#dc2626" },
 };

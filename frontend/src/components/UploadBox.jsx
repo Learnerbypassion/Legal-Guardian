@@ -54,7 +54,6 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
     setAnalysisStatus('reading');
 
     try {
-      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 45) {
@@ -65,32 +64,26 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
         });
       }, 200);
 
-      // Create FormData
       const formData = new FormData();
       formData.append('contract', selectedFile);
       formData.append('language', language);
       formData.append('userType', userType);
 
-      // Get token from cookie (optional for unauthenticated users)
       const token = Cookies.get('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-      // Step 1: Upload file
       const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: 'POST',
         headers: headers,
         body: formData,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
+      if (!uploadResponse.ok) throw new Error('Upload failed');
 
       const uploadData = await uploadResponse.json();
       setProgress(50);
       setAnalysisStatus('analyzing');
 
-      // Step 2: Analyze the contract
       const analyzeResponse = await fetch(`${import.meta.env.VITE_API_URL}/ai/analyze`, {
         method: 'POST',
         headers: {
@@ -109,16 +102,12 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
       clearInterval(progressInterval);
       setAnalysisStatus('detecting');
 
-      if (!analyzeResponse.ok) {
-        throw new Error('Analysis failed');
-      }
+      if (!analyzeResponse.ok) throw new Error('Analysis failed');
 
       const analysisData = await analyzeResponse.json();
       setProgress(100);
 
-      // Small delay to show completion state
       setTimeout(() => {
-        // Store analysis data in localStorage for persistence on refresh
         const resultData = {
           result: analysisData,
           fileName: uploadData.filename,
@@ -127,15 +116,8 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
           contractText: uploadData.contractText
         };
         localStorage.setItem('lastAnalysis', JSON.stringify(resultData));
-
-        // Reset uploading state and navigate
         setUploading(false);
-        
-        // Navigate to result page with analysis
-        // Mark if this is from unauthenticated user
-        navigate('/result', { 
-          state: resultData
-        });
+        navigate('/result', { state: resultData });
       }, 500);
     } catch (err) {
       setError(err.message || 'Upload or analysis failed. Please try again.');
@@ -146,74 +128,62 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
   };
 
   return (
-    <div className="space-y-6">
-      {/* Drop Zone */}
+    <div className="space-y-8">
+      {/* Drop Zone - Refreshed with Navy/Gold logic */}
       <div
         {...getRootProps()}
-        className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+        className={`relative border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
           isDragActive
-            ? 'border-indigo-500 bg-indigo-50'
+            ? 'border-[#8A6C2A] bg-[#FAF3E4]'
             : selectedFile
-            ? 'border-green-500 bg-green-50'
-            : 'border-gray-300 bg-gray-50 hover:border-indigo-400'
+            ? 'border-[#1B2F4E] bg-white shadow-md'
+            : 'border-[#CBD2DC] bg-[#F8FAFC] hover:border-[#1B2F4E] hover:bg-white'
         } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-white border border-[#CBD2DC] flex items-center justify-center shadow-sm">
             <svg
               className={`w-8 h-8 ${
-                selectedFile ? 'text-green-600' : 'text-gray-400'
+                selectedFile ? 'text-[#8A6C2A]' : 'text-[#1B2F4E]'
               }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </div>
 
           {selectedFile ? (
-            <>
-              <div>
-                <p className="font-semibold text-gray-900">{selectedFile.name}</p>
-                <p className="text-sm text-gray-500">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-              <p className="text-xs text-gray-500">Click to change file</p>
-            </>
+            <div>
+              <p className="font-bold text-[#1B2F4E]">{selectedFile.name}</p>
+              <p className="text-xs text-[#8A6C2A] font-bold uppercase tracking-widest mt-1">
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB — Click to Change
+              </p>
+            </div>
           ) : (
-            <>
-              <div>
-                <p className={`text-lg font-semibold ${isDragActive ? 'text-indigo-600' : 'text-gray-900'}`}>
-                  {isDragActive ? 'Drop your file here' : 'Drag & drop your file'}
-                </p>
-                <p className="text-sm text-gray-500">or click to browse</p>
-              </div>
-              <p className="text-xs text-gray-400">PDF, TXT, DOC, DOCX • Max 10MB</p>
-            </>
+            <div>
+              <p className="text-xl font-extrabold text-[#1B2F4E]">
+                {isDragActive ? 'Release to Upload' : 'Drag & drop your file'}
+              </p>
+              <p className="text-sm text-[#3D4F66] mt-1">PDF, TXT, DOC, DOCX up to 10MB</p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
           {error}
         </div>
       )}
 
-      {/* Options */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Options - Refreshed Selectors */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* User Type */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-xs font-bold text-[#8A6C2A] uppercase tracking-widest mb-4">
             User Type
           </label>
           <div className="flex flex-wrap gap-2">
@@ -222,10 +192,10 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
                 key={type.value}
                 onClick={() => setUserType(type.value)}
                 disabled={uploading}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${
                   userType === type.value
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[#1B2F4E] text-white border-[#1B2F4E] shadow-md'
+                    : 'bg-white text-[#1B2F4E] border-[#CBD2DC] hover:border-[#1B2F4E]'
                 } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {type.label}
@@ -236,7 +206,7 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
 
         {/* Language */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-xs font-bold text-[#8A6C2A] uppercase tracking-widest mb-4">
             Output Language
           </label>
           <div className="flex flex-wrap gap-2">
@@ -245,10 +215,10 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
                 key={lang}
                 onClick={() => setLanguage(lang)}
                 disabled={uploading}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${
                   language === lang
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[#1B2F4E] text-white border-[#1B2F4E] shadow-md'
+                    : 'bg-white text-[#1B2F4E] border-[#CBD2DC] hover:border-[#1B2F4E]'
                 } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {lang}
@@ -258,53 +228,45 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
         </div>
       </div>
 
-      {/* Submit Button */}
+      
       <button
         onClick={handleSubmit}
         disabled={!selectedFile || uploading}
-        className={`w-full py-3 px-4 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+        className={`w-full py-4 px-6 rounded-xl font-bold transition-all flex items-center justify-center gap-3 shadow-lg ${
           !selectedFile || uploading
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-lg'
+            ? 'bg-[#CBD2DC] text-gray-500 cursor-not-allowed shadow-none'
+            : 'bg-[#1B2F4E] text-white hover:bg-[#8A6C2A] transform hover:-translate-y-0.5'
         }`}
       >
         {uploading ? (
           <>
-            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
+            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Analyzing...
+            <span className="uppercase tracking-widest">Processing Analysis...</span>
           </>
         ) : (
           <>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Analyze Document
+            <span className="uppercase tracking-widest">Analyze Document</span>
           </>
         )}
       </button>
 
-      {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-        <p className="font-medium mb-1">How it works:</p>
-        <ul className="list-disc list-inside space-y-1 text-blue-700">
-          <li>Upload your document</li>
-          <li>AI analyzes the content</li>
-          <li>Get summary, insights, and risk assessment</li>
-          <li>Download your analysis report</li>
+      {/* Info Panel */}
+      <div className="bg-[#FAF3E4] border border-[#8A6C2A]/20 rounded-2xl p-6">
+        <h4 className="text-[#1B2F4E] font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/></svg>
+           How it works
+        </h4>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-xs font-bold text-[#3D4F66]">
+          <li className="flex items-center gap-2">✓ Upload your document</li>
+          <li className="flex items-center gap-2">✓ Get summary, insights, and risk assessment</li>
+          <li className="flex items-center gap-2">✓ AI analyzes the content</li>
+          <li className="flex items-center gap-2">✓ Download your analysis report</li>
         </ul>
       </div>
     </div>

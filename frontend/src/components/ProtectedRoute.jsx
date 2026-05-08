@@ -7,12 +7,18 @@ export const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        {/* Navy/Gold themed loading state */}
         <div className="text-center">
-          <div className="inline-block">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="relative inline-block">
+            {/* Main Spinner - Navy */}
+            <div className="animate-spin rounded-xl h-14 w-14 border-2 border-[#1B2F4E] border-t-transparent shadow-sm"></div>
+            {/* Decorative Gold Accent */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#8A6C2A] rounded-full animate-pulse"></div>
           </div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-6 text-[#1B2F4E] font-black uppercase tracking-[0.2em] text-[10px]">
+            Verifying Credentials
+          </p>
         </div>
       </div>
     );
