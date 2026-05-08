@@ -7,6 +7,7 @@ import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
 import { AnalysisLoading } from '../components/AnalysisLoading';
 import { getRecommendedProfessionals, contactProfessional } from '../services/api';
+import { ClipboardList, CircleCheckBig, TriangleAlert, FileText, Briefcase, History, MessageSquareMore, File, ShieldAlert } from 'lucide-react';
 
 export const Result = () => {
   const location = useLocation();
@@ -316,28 +317,34 @@ export const Result = () => {
         </div>
 
         {/* Tabs */}
+        {/* Tabs */}
         <div className="bg-white rounded-xl shadow-md border border-[#CBD2DC] overflow-hidden">
           <div className="border-b border-gray-200 bg-gray-50 flex overflow-x-auto">
+
             {[
-              { id: 'summary', label: 'Summary', icon: '📋' },
-              { id: 'advantages', label: 'Advantages', icon: '✅' },
-              { id: 'concerns', label: 'Concerns', icon: '⚠️' },
-              { id: 'clauses', label: 'Clauses', icon: '📄' },
-              { id: 'professionals', label: 'Professionals', icon: '👔' },
-              { id: 'history', label: 'History', icon: '⏱️' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-4 font-bold text-sm transition whitespace-nowrap ${activeTab === tab.id
-                  ? 'border-b-2 border-[#1B2F4E] text-[#1B2F4E] bg-white'
-                  : 'text-[#3D4F66] hover:text-[#1B2F4E]'
-                  }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
+              { id: 'summary', label: 'Summary', icon: ClipboardList },
+              { id: 'advantages', label: 'Advantages', icon: CircleCheckBig },
+              { id: 'concerns', label: 'Concerns', icon: TriangleAlert },
+              { id: 'clauses', label: 'Clauses', icon: FileText },
+              { id: 'professionals', label: 'Professionals', icon: Briefcase },
+              { id: 'history', label: 'History', icon: History },
+            ].map((tab) => {
+              const Icon = tab.icon;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-4 font-bold text-sm transition whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id
+                    ? 'border-b-2 border-[#1B2F4E] text-[#1B2F4E] bg-white'
+                    : 'text-[#3D4F66] hover:text-[#1B2F4E]'
+                    }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="p-8">
@@ -399,12 +406,13 @@ export const Result = () => {
             {activeTab === 'clauses' && (
               <div className="space-y-4">
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                  <p className="text-amber-800 text-sm font-medium">⚠️ These clause types were automatically detected. Review each one carefully with a legal professional before signing.</p>
+                  <p className="text-amber-800 text-sm font-medium">
+                    <ShieldAlert size={16} className="inline-block align-middle mr-1 -mt-0.5" /> These clause types were automatically detected. Review each one carefully with a legal professional before signing.</p>
                 </div>
                 {result.riskScore?.detectedKeywords?.length > 0 ? (
                   result.riskScore.detectedKeywords.map((keyword, idx) => (
                     <div key={idx} className="bg-[#F4F5F7] rounded-lg p-5 border-l-4 border-[#1B2F4E] border border-gray-200 flex items-center gap-4">
-                      <span className="text-2xl">📄</span>
+                      <span className="text-2xl"><File /></span>
                       <div>
                         <h4 className="font-bold text-[#1B2F4E] capitalize">{keyword.toLowerCase().replace('indemnif', 'Indemnification')}</h4>
                         <p className="text-sm text-[#3D4F66] mt-1">Detected in your document — consult a lawyer about this clause type.</p>
@@ -476,35 +484,37 @@ export const Result = () => {
         <div className="mt-12">
           <div className="bg-white rounded-xl shadow-lg p-8 border border-[#CBD2DC]">
             <h3 className="text-xl font-bold text-[#1B2F4E] mb-6 flex items-center gap-2">
-              <span className="p-2 bg-[#FAF3E4] rounded-lg">💬</span> Ask Questions About This Document
+              <span className="p-2 bg-[#FAF3E4] rounded-lg"><MessageSquareMore /></span> Ask Questions About This Document
             </h3>
             <ChatBox contractText={resolvedContractText} language="English" />
-            
+
           </div>
         </div>
 
         {/* Auth Prompt */}
-        {showAuthPrompt && (
-          <div className="fixed inset-0 bg-[#1B2F4E]/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-8 border-[#8A6C2A]">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-[#1B2F4E] mb-2">Save This Report</h3>
-                <p className="text-[#3D4F66]">Create an account to securely store your legal analyses and chat history.</p>
-              </div>
-              <div className="space-y-4">
-                <button onClick={() => navigate('/signup')} className="w-full py-4 bg-[#1B2F4E] text-white font-bold rounded-xl hover:bg-[#8A6C2A] transition shadow-lg">
-                  Create Account
-                </button>
-                <button onClick={() => navigate('/login')} className="w-full py-4 border-2 border-[#1B2F4E] text-[#1B2F4E] font-bold rounded-xl">
-                  Sign In
-                </button>
-                <button onClick={() => setShowAuthPrompt(false)} className="w-full py-2 text-gray-500 font-medium">
-                  Continue as Guest
-                </button>
+        {
+          showAuthPrompt && (
+            <div className="fixed inset-0 bg-[#1B2F4E]/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-8 border-[#8A6C2A]">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-[#1B2F4E] mb-2">Save This Report</h3>
+                  <p className="text-[#3D4F66]">Create an account to securely store your legal analyses and chat history.</p>
+                </div>
+                <div className="space-y-4">
+                  <button onClick={() => navigate('/signup')} className="w-full py-4 bg-[#1B2F4E] text-white font-bold rounded-xl hover:bg-[#8A6C2A] transition shadow-lg">
+                    Create Account
+                  </button>
+                  <button onClick={() => navigate('/login')} className="w-full py-4 border-2 border-[#1B2F4E] text-[#1B2F4E] font-bold rounded-xl">
+                    Sign In
+                  </button>
+                  <button onClick={() => setShowAuthPrompt(false)} className="w-full py-2 text-gray-500 font-medium">
+                    Continue as Guest
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
         <SaveHistoryModal
           isOpen={showSaveModal}
@@ -512,7 +522,7 @@ export const Result = () => {
           onSave={() => sessionStorage.setItem('pendingAnalysis', JSON.stringify({ result, fileName, documentId, timestamp: new Date().toISOString() }))}
           fileName={fileName}
         />
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
