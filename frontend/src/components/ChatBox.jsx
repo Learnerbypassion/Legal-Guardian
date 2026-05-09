@@ -211,7 +211,7 @@ export default function ChatBox({ contractText, language = "English", isLoadingD
                     key={q}
                     onClick={() => send(q)}
                     disabled={loading}
-                    className="px-4 py-2 text-[11px] bg-white text-[#1B2F4E] border border-[#CBD2DC] rounded-lg hover:border-[#8A6C2A] hover:text-[#8A6C2A] transition-all font-bold shadow-sm disabled:opacity-50"
+                    className="px-4 py-2 text-[15px] bg-white text-[#1B2F4E] border border-[#CBD2DC] rounded-lg hover:border-[#8A6C2A] hover:text-[#8A6C2A] transition-all font-bold shadow-sm disabled:opacity-50"
                   >
                     {q}
                   </button>
@@ -231,7 +231,7 @@ export default function ChatBox({ contractText, language = "English", isLoadingD
                       : "bg-[#F1F5F9] text-[#1B2F4E] border border-[#E2E8F0] rounded-tl-none font-medium"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-lg leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))}

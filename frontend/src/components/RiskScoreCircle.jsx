@@ -62,10 +62,10 @@ export default function RiskScoreCircle({ score = 0, label = 'Unknown' }) {
         <p className={`text-2xl font-bold uppercase tracking-tight text-[#1B2F4E]`}>{label}</p>
         
         {/* Percentage Badge */}
-        <div className="mt-4 inline-flex items-center px-4 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-full">
+        {/* <div className="mt-4 inline-flex items-center px-4 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-full">
           <span className="flex h-2 w-2 rounded-full mr-2" style={{ backgroundColor: color }}></span>
           <p className="text-[11px] font-bold text-[#3D4F66] uppercase tracking-wider">{percentage.toFixed(0)}% Intensity</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
