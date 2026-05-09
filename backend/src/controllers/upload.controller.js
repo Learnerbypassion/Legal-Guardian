@@ -45,7 +45,7 @@ const getUserDocuments = async (req, res, next) => {
     const documents = await Document.find({ userId })
       .sort({ createdAt: -1 })
       .select(
-        "_id filename createdAt summary pros cons overallAdvice riskScore contractType"
+        "_id filename contractText createdAt summary pros cons highlightedClauses overallAdvice riskScore contractType"
       );
 
     res.status(200).json({
@@ -59,4 +59,54 @@ const getUserDocuments = async (req, res, next) => {
   }
 };
 
-module.exports = { uploadPDF, getUserDocuments };
+/**
+ * GET /api/upload/documents/:docId
+ * Get a single document by ID with full contract text
+ * Ensures user owns the document
+ */
+const getDocumentById = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { docId } = req.params;
+
+    console.log("📄 Fetching document:", { docId, userId });
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: "User not authenticated",
+      });
+    }
+
+    if (!docId) {
+      return res.status(400).json({
+        success: false,
+        error: "Document ID is required",
+      });
+    }
+
+    // Fetch document and verify user owns it
+    const document = await Document.findOne({ _id: docId, userId });
+
+    if (!document) {
+      console.warn("❌ Document not found:", { docId, userId });
+      return res.status(404).json({
+        success: false,
+        error: "Document not found or you don't have access to it",
+      });
+    }
+
+    console.log("✅ Document found:", { docId, hasContractText: !!document.contractText, contractLength: document.contractText?.length || 0 });
+
+    res.status(200).json({
+      success: true,
+      data: document,
+      message: "Document retrieved successfully",
+    });
+  } catch (error) {
+    console.error("❌ Get document by ID error:", error.message);
+    next(error);
+  }
+};
+
+module.exports = { uploadPDF, getUserDocuments, getDocumentById };

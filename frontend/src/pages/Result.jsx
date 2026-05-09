@@ -6,7 +6,7 @@ import { SaveHistoryModal } from '../components/SaveHistoryModal';
 import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
 import { AnalysisLoading } from '../components/AnalysisLoading';
-import { getRecommendedProfessionals, contactProfessional } from '../services/api';
+import { getRecommendedProfessionals, contactProfessional, getDocumentById } from '../services/api';
 
 export const Result = () => {
   const location = useLocation();
@@ -30,13 +30,42 @@ export const Result = () => {
   }
 
   const { result, documentId, fileName, isUnauthenticated, contractText } = resultData || {};
-  const resolvedContractText = contractText || localStorage.getItem('contractText') || '';
+  const [resolvedContractText, setResolvedContractText] = useState(contractText || '');
+  const [loadingDoc, setLoadingDoc] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
   const [showMenu, setShowMenu] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [professionals, setProfessionals] = useState([]);
   const [contactedIds, setContactedIds] = useState({});
+
+  // Fetch document from DB if contractText is missing but documentId is available
+  useEffect(() => {
+    if (!resolvedContractText && documentId && user) {
+      // console.log("🔄 Fetching document from DB:", { documentId, hasUser: !!user });
+      setLoadingDoc(true);
+      getDocumentById(documentId)
+        .then((res) => {
+          console.log("✅ Document fetch response:", { success: res.success, hasContractText: !!res.data?.contractText, contractLength: res.data?.contractText?.length || 0 });
+          if (res.success && res.data?.contractText) {
+            setResolvedContractText(res.data.contractText);
+            // console.log("✅ ContractText set in state");
+          } else if (res.success && !res.data?.contractText) {
+            // console.warn('⚠️ Document found but contractText is missing. This document was analyzed before text storage was enabled. User will need to re-upload.');
+          } else {
+            // console.warn('⚠️ Document fetch failed:', res);
+          }
+        })
+        .catch((err) => {
+          // console.error('❌ Failed to fetch document:', err);
+        })
+        .finally(() => {
+          setLoadingDoc(false);
+        });
+    } else {
+      // console.log("ℹ️ Not fetching document:", { hasResolvedText: !!resolvedContractText, hasDocId: !!documentId, hasUser: !!user });
+    }
+  }, [documentId, user]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -478,7 +507,7 @@ export const Result = () => {
             <h3 className="text-xl font-bold text-[#1B2F4E] mb-6 flex items-center gap-2">
               <span className="p-2 bg-[#FAF3E4] rounded-lg">💬</span> Ask Questions About This Document
             </h3>
-            <ChatBox contractText={resolvedContractText} language="English" />
+            <ChatBox contractText={resolvedContractText} language="English" isLoadingDoc={loadingDoc} />
             
           </div>
         </div>

@@ -40,6 +40,7 @@ const analyze = async (req, res, next) => {
     try {
       await Document.create({
         filename,
+        contractText,
         contractType: formatted.contractType,
         parties: formatted.parties,
         keyDates: formatted.keyDates,

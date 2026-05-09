@@ -96,6 +96,15 @@ export const getUserDocuments = async () => {
 };
 
 /**
+ * Get a single document by ID with full contract text
+ * @param {string} docId - Document ID
+ */
+export const getDocumentById = async (docId) => {
+  const { data } = await api.get(`/upload/documents/${docId}`);
+  return data;
+};
+
+/**
  * Update user profile (for professionals)
  */
 export const updateProfile = async (payload) => {

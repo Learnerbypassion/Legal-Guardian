@@ -11,7 +11,7 @@ const QUICK_QUESTIONS = [
   "What are my main obligations?",
 ];
 
-export default function ChatBox({ contractText, language = "English" }) {
+export default function ChatBox({ contractText, language = "English", isLoadingDoc = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([
@@ -163,22 +163,40 @@ export default function ChatBox({ contractText, language = "English" }) {
             </button>
           </div>
         </div>
+      ) : isLoadingDoc ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#F8FAFC]">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 mb-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#8A6C2A] border-t-transparent" />
+            </div>
+            <p className="text-[#1B2F4E] font-bold text-lg mb-2">Loading Document</p>
+            <p className="text-sm text-[#3D4F66] mb-8">Retrieving contract details from database...</p>
+          </div>
+        </div>
       ) : !contractText || contractText.trim().length < 10 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#FFF9F9]">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-50 border border-red-100 mb-6">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 mb-6">
+              <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-[#1B2F4E] font-bold text-lg mb-2">No Context Found</p>
-            <p className="text-sm text-[#3D4F66] mb-8">The AI requires a document to provide legal insights.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 border-2 border-[#1B2F4E] text-[#1B2F4E] rounded-xl hover:bg-[#1B2F4E] hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
-            >
-              Reload Source
-            </button>
+            <p className="text-[#1B2F4E] font-bold text-lg mb-2">Document Text Unavailable</p>
+            <p className="text-sm text-[#3D4F66] mb-6">This document was analyzed before text storage was enabled. Please re-upload the document to chat about it.</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => navigate('/')}
+                className="px-6 py-2 bg-[#1B2F4E] text-white rounded-lg hover:bg-[#15253d] transition font-bold text-sm"
+              >
+                Re-upload Document
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 border-2 border-[#1B2F4E] text-[#1B2F4E] rounded-lg hover:bg-[#1B2F4E] hover:text-white transition font-bold text-sm"
+              >
+                Reload
+              </button>
+            </div>
           </div>
         </div>
       ) : (
