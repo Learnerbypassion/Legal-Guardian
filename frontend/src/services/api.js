@@ -127,3 +127,14 @@ export const contactProfessional = async (professionalId) => {
   const { data } = await api.post('/professionals/contact', { professionalId });
   return data;
 };
+
+/**
+ * Download analysis report as PDF
+ * @param {Object} analysisData - The analysis result object
+ */
+export const downloadAnalysisAsPDF = async (analysisData) => {
+  const response = await api.post('/upload/download-pdf', { analysisData }, {
+    responseType: 'blob'
+  });
+  return response.data;
+};

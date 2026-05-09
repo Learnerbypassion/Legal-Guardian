@@ -5,7 +5,7 @@ import ChatBox from '../components/ChatBox';
 import { SaveHistoryModal } from '../components/SaveHistoryModal';
 import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
-import { getRecommendedProfessionals, contactProfessional, getDocumentById } from '../services/api';
+import { getRecommendedProfessionals, contactProfessional, getDocumentById, downloadAnalysisAsPDF } from '../services/api';
 import { ClipboardList, CircleCheckBig, TriangleAlert, FileText, Briefcase, History, MessageSquareMore, File, ShieldAlert } from 'lucide-react';
 
 export const Result = () => {
@@ -492,15 +492,20 @@ export const Result = () => {
             New Analysis
           </button>
           <button
-            onClick={() => {
+            onClick={async () => {
               if (!user) { setShowAuthPrompt(true); return; }
-              const dataStr = JSON.stringify(result, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `LegalGuardian_Report_${fileName.replace('.pdf', '')}.json`;
-              link.click();
+              try {
+                const blob = await downloadAnalysisAsPDF(result);
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `LegalGuardian_Report_${fileName.replace('.pdf', '')}.pdf`;
+                link.click();
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                console.error('PDF download error:', error);
+                alert('Failed to download report. Please try again.');
+              }
             }}
             className="flex-1 px-6 py-4 border-2 border-[#1B2F4E] text-[#1B2F4E] rounded-xl hover:bg-white transition font-bold text-lg"
           >

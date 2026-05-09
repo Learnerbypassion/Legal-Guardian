@@ -42,7 +42,7 @@ export const AnalysisLoading = ({ status = 'reading' }) => {
               <span className="text-5xl">📄</span>
             </div>
             {/* Rotating border animation using Gold and Navy accents */}
-            <div className="absolute -inset-2 rounded-full border-2 border-transparent border-t-[#8A6C2A] border-r-[#1B2F4E] animate-spin" style={{ animationDuration: '3s' }}></div>
+            <div className="absolute -inset-5 rounded-full border-2 border-transparent border-t-[#8A6C2A] border-r-[#1B2F4E] animate-spin" style={{ animationDuration: '3s' }}></div>
           </div>
         </div>
 

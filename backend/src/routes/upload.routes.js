@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload.middleware");
-const { uploadPDF, getUserDocuments, getDocumentById } = require("../controllers/upload.controller");
+const { uploadPDF, getUserDocuments, getDocumentById, downloadAnalysisPDF } = require("../controllers/upload.controller");
 const { authenticate } = require("../middlewares/auth.middleware");
 
 // POST /api/upload - Upload and parse PDF
 router.post("/", upload.single("contract"), uploadPDF);
+
+// POST /api/upload/download-pdf - Download analysis as PDF
+router.post("/download-pdf", downloadAnalysisPDF);
 
 // GET /api/upload/documents/:docId - Get single document by ID with full contract text (MORE SPECIFIC - MUST BE FIRST)
 router.get("/documents/:docId", authenticate, getDocumentById);

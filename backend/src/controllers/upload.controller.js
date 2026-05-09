@@ -1,4 +1,5 @@
 const { extractAndClean } = require("../services/parser.service");
+const { generateAnalysisPDF } = require("../services/pdf.service");
 const Document = require("../models/document.model");
 
 /**
@@ -114,4 +115,38 @@ const getDocumentById = async (req, res, next) => {
   }
 };
 
-module.exports = { uploadPDF, getUserDocuments, getDocumentById };
+/**
+ * POST /api/upload/download-pdf
+ * Generate and download analysis as PDF
+ * Body: { analysisData }
+ */
+const downloadAnalysisPDF = async (req, res, next) => {
+  try {
+    const { analysisData } = req.body;
+
+    if (!analysisData) {
+      return res.status(400).json({
+        success: false,
+        error: "Analysis data is required",
+      });
+    }
+
+    // Generate PDF from analysis data
+    const pdfBuffer = await generateAnalysisPDF(analysisData);
+
+    // Set response headers for file download
+    const filename = `LegalGuardian_Report_${(analysisData.filename || 'contract').replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+    // Send PDF as response
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error("❌ PDF download error:", error.message);
+    next(error);
+  }
+};
+
+module.exports = { uploadPDF, getUserDocuments, getDocumentById, downloadAnalysisPDF };
