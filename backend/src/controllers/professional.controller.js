@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Document = require("../models/document.model");
 const { sendProfessionalContactEmail } = require("../services/email.service");
 
 /**
@@ -38,6 +39,7 @@ const recommendProfessionals = async (req, res) => {
  * POST /api/professionals/contact
  * Body: { professionalId }
  * Send an email to the professional on behalf of the current user
+ * Includes the most recent uploaded PDF document as attachment if available
  */
 const contactProfessional = async (req, res) => {
   try {
@@ -61,17 +63,37 @@ const contactProfessional = async (req, res) => {
       });
     }
 
-    // Send email to professional
+    // Get the most recent document from the user
+    const recentDocument = await Document.findOne({ userId }).sort({ createdAt: -1 });
+
+    let pdfBuffer = null;
+    let fileName = null;
+
+    // If document has PDF buffer, use it
+    if (recentDocument && recentDocument.pdfBuffer) {
+      fileName = recentDocument.filename || "Document.pdf";
+      pdfBuffer = recentDocument.pdfBuffer;
+      console.log("✅ Using stored PDF buffer:", fileName);
+    } else if (recentDocument && recentDocument.contractText) {
+      // Fallback: use text if no PDF available
+      fileName = (recentDocument.filename || "Document") + ".txt";
+      pdfBuffer = Buffer.from(recentDocument.contractText, "utf-8");
+      console.log("⚠️ Using contract text as fallback:", fileName);
+    }
+
+    // Send email to professional with optional attachment
     await sendProfessionalContactEmail(
       professional.email,
       professional.name,
       currentUser.email,
-      currentUser.name
+      currentUser.name,
+      pdfBuffer,
+      fileName
     );
 
     res.status(200).json({
       success: true,
-      message: "Email sent successfully to the professional.",
+      message: "Email sent successfully to the professional" + (pdfBuffer ? " with document attached." : "."),
     });
   } catch (error) {
     console.error("❌ Contact professional error:", error.message);

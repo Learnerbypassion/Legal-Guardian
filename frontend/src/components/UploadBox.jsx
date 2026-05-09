@@ -95,7 +95,8 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
           filename: uploadData.filename,
           charCount: uploadData.charCount,
           language: language,
-          userType: userType
+          userType: userType,
+          pdfBuffer: uploadData.pdfBuffer
         })
       });
 

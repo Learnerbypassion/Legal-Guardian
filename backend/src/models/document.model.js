@@ -11,6 +11,7 @@ const documentSchema = new mongoose.Schema(
   {
     filename: { type: String, required: true },
     contractText: { type: String, default: null },
+    pdfBuffer: { type: Buffer, default: null },
     contractType: { type: String, default: "Unknown" },
     parties: [String],
     keyDates: [{ label: String, date: String }],

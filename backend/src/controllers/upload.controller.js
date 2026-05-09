@@ -3,7 +3,7 @@ const Document = require("../models/document.model");
 
 /**
  * POST /api/upload
- * Accepts a PDF, extracts text, returns it for analysis
+ * Accepts a PDF, extracts text, returns it for analysis with PDF buffer
  */
 const uploadPDF = async (req, res, next) => {
   try {
@@ -13,11 +13,16 @@ const uploadPDF = async (req, res, next) => {
 
     const { buffer, originalname } = req.file;
     const { rawText, cleanedText, charCount } = await extractAndClean(buffer);
+    
+    // Convert PDF buffer to base64 for sending to frontend
+    const pdfBase64 = buffer.toString("base64");
+    
     res.status(200).json({
       success: true,
       filename: originalname,
       charCount,
       contractText: cleanedText,
+      pdfBuffer: pdfBase64,
       message: "PDF parsed successfully. Ready for analysis.",
     });
   } catch (error) {

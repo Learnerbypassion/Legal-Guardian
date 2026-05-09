@@ -5,8 +5,8 @@ const Document = require("../models/document.model");
 
 /**
  * POST /api/analyze
- * Body: { contractText, filename, userType, language }
- * Analyzes contract, calculates risk, optionally saves to DB
+ * Body: { contractText, filename, userType, language, pdfBuffer }
+ * Analyzes contract, calculates risk, saves to DB with PDF
  */
 const analyze = async (req, res, next) => {
   try {
@@ -16,6 +16,7 @@ const analyze = async (req, res, next) => {
       userType = "general",
       language = "English",
       charCount = 0,
+      pdfBuffer = null,
     } = req.body;
 
     if (!contractText || contractText.trim().length < 50) {
@@ -38,9 +39,18 @@ const analyze = async (req, res, next) => {
 
     // 4. Save to DB (optional - won't fail request if DB is down)
     try {
+      // Convert pdfBuffer from base64 string if provided
+      let pdfData = null;
+      if (pdfBuffer && typeof pdfBuffer === "string") {
+        pdfData = Buffer.from(pdfBuffer, "base64");
+      } else if (Buffer.isBuffer(pdfBuffer)) {
+        pdfData = pdfBuffer;
+      }
+
       await Document.create({
         filename,
         contractText,
+        pdfBuffer: pdfData,
         contractType: formatted.contractType,
         parties: formatted.parties,
         keyDates: formatted.keyDates,
