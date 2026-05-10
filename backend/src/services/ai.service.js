@@ -36,10 +36,31 @@ const analyzeContract = async (contractText, userType = "general", language = "E
  */
 const analyzeImage = async (imageUrl, userType = "general", language = "English") => {
   try {
-    console.log("📸 Analyzing contract image with Gemini Vision API");
+    console.log("📸 Fetching image from URL:", imageUrl);
     
-    const model = getModel("gemini-2.0-flash");
+    // Fetch the image from the URL
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+
+    // Convert to base64
+    const buffer = await response.buffer ? response.buffer() : Buffer.from(await response.arrayBuffer());
+    const base64Data = buffer.toString("base64");
+
+    console.log("🔄 Converting to base64 (" + base64Data.length + " chars)");
+
+    const model = getModel("gemini-3-flash-preview");
     const promptConfig = ANALYSIS_IMAGE_PROMPT(userType, language);
+
+    // Determine mime type based on URL
+    let mimeType = "image/jpeg";
+    if (imageUrl.includes(".png")) mimeType = "image/png";
+    else if (imageUrl.includes(".gif")) mimeType = "image/gif";
+    else if (imageUrl.includes(".webp")) mimeType = "image/webp";
+    else if (imageUrl.includes(".bmp")) mimeType = "image/bmp";
+
+    console.log("📤 Sending to Gemini with mimeType:", mimeType);
 
     const result = await model.generateContent([
       {
@@ -47,31 +68,11 @@ const analyzeImage = async (imageUrl, userType = "general", language = "English"
       },
       {
         inlineData: {
-          mimeType: "image/jpeg",
-          data: imageUrl,
+          mimeType: mimeType,
+          data: base64Data, // Send as base64 bytes
         },
       },
     ]);
-
-    // If URL is direct (not base64), use fileData instead
-    if (imageUrl.startsWith("http")) {
-      const urlResult = await model.generateContent([
-        {
-          text: promptConfig.text,
-        },
-        {
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: imageUrl.split(",")[1] || imageUrl,
-          },
-        },
-      ]);
-
-      const responseText = urlResult.response.text();
-      console.log("✅ Image analyzed successfully");
-      const parsed = safeParseJSON(responseText);
-      return parsed;
-    }
 
     const responseText = result.response.text();
     console.log("✅ Image analyzed successfully");
@@ -96,7 +97,7 @@ const analyzeImage = async (imageUrl, userType = "general", language = "English"
  */
 const askQuestion = async (contractText, question, history = [], language = "English") => {
   try {
-    const model = getModel("gemini-2.0-flash");
+    const model = getModel("gemini-3-flash-preview");
     const prompt = CHAT_PROMPT(contractText, question, history, language);
 
     const result = await model.generateContent(prompt);
