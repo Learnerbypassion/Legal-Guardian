@@ -106,10 +106,10 @@ export const Profile = () => {
  
           {/* Logo */}
           <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-            <div className="w-9 h-9 bg-[#1B2F4E] rounded-lg flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">LG</span>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-md">
+              <img src="../logo.png" alt="Legal-Guardian Logo" className="w-full h-full object-contain rounded-lg" />
             </div>
-            <h1 className="text-lg font-bold text-[#1B2F4E] hidden sm:block">Legal-Guardian</h1>
+            <h1 className="text-lg font-bold shadow-sm text-[#0F172A] hidden sm:block">Legal Guardian</h1>
           </div>
  
           {/* Desktop nav */}
