@@ -184,7 +184,7 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
               <p className="text-xl font-extrabold text-[#1B2F4E]">
                 {isDragActive ? 'Release to Upload' : 'Drag & drop your file'}
               </p>
-              <p className="text-sm text-[#3D4F66] mt-1">PDF, TXT, DOC, DOCX up to 10MB</p>
+              <p className="text-sm text-[#3D4F66] mt-1">PDF, TXT, DOC, DOCX, PNG, JPG up to 10MB</p>
             </div>
           )}
         </div>
