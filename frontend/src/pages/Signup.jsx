@@ -72,7 +72,7 @@ export const Signup = () => {
       const normalizedPhone = normalizePhoneForSubmit(formData.phone);
       const data = await register(formData.email, normalizedPhone, formData.name, formData.role);
       setUserId(data.userId);
-      setTimer(60); 
+      setTimer(60);
       setStep(2);
     } catch (err) {
       // Error handled by context
@@ -161,10 +161,13 @@ export const Signup = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#1B2F4E] via-[#0F172A] to-[#1B2F4E] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="mb-8">
-          <div className="text-center mb-2">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8A6C2A] to-[#D4AF37] mb-2">
-              LegalLens
+        <div className="mb-10 mt-6">
+          <div className="text-center flex flex-col items-center">
+            <div className="w-14 h-14 mb-2 rounded-xl flex items-center justify-center overflow-hidden">
+              <img src="../logo.png" alt="Logo" className="w-14 h-14 object-contain rounded-2xl" />
+            </div>
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8A6C2A] to-[#D4AF37] mb-4">
+              Legal Guardian
             </h1>
             <p className="text-gray-400">AI-Powered Document Analysis</p>
           </div>
@@ -327,7 +330,7 @@ export const Signup = () => {
                   >
                     {loading ? 'Verifying...' : 'Verify Codes'}
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={handleSkipEmail}

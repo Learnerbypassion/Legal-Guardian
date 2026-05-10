@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ChevronDown, ChevronRight, Globe, GitBranch, Puzzle } from 'lucide-react';
+import { LINKS } from '../constants/links';
 
 /* ── Small UI helpers ── */
 const Label = ({ children }) => (
@@ -24,6 +26,8 @@ export const Profile = () => {
   const navigate = useNavigate();
 
   const [showMenu, setShowMenu] = React.useState(false);
+  const [showQuickLinks, setShowQuickLinks] = useState(false);
+  const [showMobileQuickLinks, setShowMobileQuickLinks] = useState(false);
   const [editing, setEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
@@ -103,7 +107,7 @@ export const Profile = () => {
       {/* ── NAVBAR ── */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#CBD2DC] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
- 
+
           {/* Logo */}
           <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer flex-shrink-0">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-md">
@@ -111,22 +115,120 @@ export const Profile = () => {
             </div>
             <h1 className="text-lg font-bold shadow-sm text-[#0F172A] hidden sm:block">Legal Guardian</h1>
           </div>
- 
+
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
             <button onClick={() => navigate('/')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">Dashboard</button>
             <button onClick={() => navigate('/history')} className="text-[#3D4F66] hover:text-[#1B2F4E] font-medium transition text-sm">History</button>
             <button onClick={() => navigate('/profile')} className="text-[#1B2F4E] font-semibold text-sm">Profile</button>
-            <a
-              href="https://github.com/Learnerbypassion/Legal-Gurdian"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm"
-            >
-              GitHub
-            </a>
+            {/* Quick Links */}
+            <div className="relative">
+              <button
+                onClick={() => setShowQuickLinks(!showQuickLinks)}
+                className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm flex items-center gap-1"
+              >
+                Quick Links
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform duration-200 ${showQuickLinks ? 'rotate-180' : ''
+                    }`}
+                />
+              </button>
+
+              {/* Dropdown */}
+              <div
+                className={`absolute right-0 top-full mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl overflow-hidden transition-all duration-200 ease-out z-50 ${showQuickLinks
+                  ? 'opacity-100 translate-y-0 pointer-events-auto'
+                  : 'opacity-0 -translate-y-2 pointer-events-none'
+                  }`}
+              >
+                {/* Website */}
+                <a
+                  href={LINKS.WEBSITE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-4 py-4 hover:bg-[#FAF3E4] transition group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#F8FAFC] flex items-center justify-center">
+                      <Globe size={20} className="text-[#1B2F4E]" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-[#1B2F4E]">
+                        Visit Website
+                      </p>
+                      <p className="text-xs text-[#64748B]">
+                        Go to official site
+                      </p>
+                    </div>
+                  </div>
+
+                  <ChevronRight
+                    size={18}
+                    className="text-[#B08B3E] group-hover:translate-x-1 transition-transform"
+                  />
+                </a>
+
+                {/* App Repo */}
+                <a
+                  href={LINKS.APP_REPO}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-4 py-4 hover:bg-[#FAF3E4] transition group border-t border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#F8FAFC] flex items-center justify-center">
+                      <GitBranch size={20} className="text-[#1B2F4E]" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-[#1B2F4E]">
+                        App Repository
+                      </p>
+                      <p className="text-xs text-[#64748B]">
+                        Source code for app
+                      </p>
+                    </div>
+                  </div>
+
+                  <ChevronRight
+                    size={18}
+                    className="text-[#B08B3E] group-hover:translate-x-1 transition-transform"
+                  />
+                </a>
+
+                {/* Extension Repo */}
+                <a
+                  href={LINKS.EXTENSION_REPO}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-4 py-4 hover:bg-[#FAF3E4] transition group border-t border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#F8FAFC] flex items-center justify-center">
+                      <Puzzle size={20} className="text-[#1B2F4E]" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-[#1B2F4E]">
+                        Extension Repository
+                      </p>
+                      <p className="text-xs text-[#64748B]">
+                        Browser extension source
+                      </p>
+                    </div>
+                  </div>
+
+                  <ChevronRight
+                    size={18}
+                    className="text-[#B08B3E] group-hover:translate-x-1 transition-transform"
+                  />
+                </a>
+              </div>
+            </div>
           </nav>
- 
+
           {/* Right: user pill + logout (desktop) */}
           <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             {user ? (
@@ -154,7 +256,7 @@ export const Profile = () => {
               </>
             )}
           </div>
- 
+
           {/* Mobile hamburger */}
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -168,7 +270,7 @@ export const Profile = () => {
             </svg>
           </button>
         </div>
- 
+
         {/* Mobile menu dropdown */}
         {showMenu && (
           <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1">
@@ -186,14 +288,75 @@ export const Profile = () => {
             <button onClick={() => handleNavigation('/')} className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition">Dashboard</button>
             <button onClick={() => handleNavigation('/history')} className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition">History</button>
             <button onClick={() => handleNavigation('/profile')} className="block w-full text-left px-3 py-2.5 text-[#1B2F4E] bg-[#FAF3E4] rounded-lg font-semibold text-sm">Profile</button>
-            <a
-              href="https://github.com/Learnerbypassion/Legal-Gurdian"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-left px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
-            >
-              GitHub ↗
-            </a>
+            {/* Mobile Quick Links */}
+            <div className="space-y-1">
+              <button
+                onClick={() => setShowMobileQuickLinks(!showMobileQuickLinks)}
+                className="flex items-center justify-between w-full px-3 py-2.5 text-[#3D4F66] hover:bg-gray-50 rounded-lg font-medium text-sm transition"
+              >
+                <span>Quick Links</span>
+
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform duration-200 ${showMobileQuickLinks ? 'rotate-180' : ''
+                    }`}
+                />
+              </button>
+
+              {showMobileQuickLinks && (
+                <div className="ml-3 space-y-1 border-l border-gray-200 pl-3">
+
+                  <a
+                    href={LINKS.WEBSITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-3 py-2.5 hover:bg-[#FAF3E4] rounded-lg transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Globe size={16} className="text-[#1B2F4E]" />
+                      <span className="text-sm text-[#1B2F4E]">
+                        Visit Website
+                      </span>
+                    </div>
+
+                    <ChevronRight size={16} className="text-[#B08B3E]" />
+                  </a>
+
+                  <a
+                    href={LINKS.APP_REPO}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-3 py-2.5 hover:bg-[#FAF3E4] rounded-lg transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <GitBranch size={16} className="text-[#1B2F4E]" />
+                      <span className="text-sm text-[#1B2F4E]">
+                        App Repository
+                      </span>
+                    </div>
+
+                    <ChevronRight size={16} className="text-[#B08B3E]" />
+                  </a>
+
+                  <a
+                    href={LINKS.EXTENSION_REPO}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-3 py-2.5 hover:bg-[#FAF3E4] rounded-lg transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Puzzle size={16} className="text-[#1B2F4E]" />
+                      <span className="text-sm text-[#1B2F4E]">
+                        Extension Repository
+                      </span>
+                    </div>
+
+                    <ChevronRight size={16} className="text-[#B08B3E]" />
+                  </a>
+
+                </div>
+              )}
+            </div>
             <div className="pt-2 border-t border-gray-100 mt-2">
               {user ? (
                 <button onClick={handleLogout} className="block w-full text-left px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg font-semibold text-sm transition">Logout</button>
