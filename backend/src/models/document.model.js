@@ -12,6 +12,11 @@ const documentSchema = new mongoose.Schema(
     filename: { type: String, required: true },
     contractText: { type: String, default: null },
     pdfBuffer: { type: Buffer, default: null },
+    // Image upload support
+    imageUrl: { type: String, default: null },
+    imageKitFileId: { type: String, default: null },
+    imageKitThumbnailUrl: { type: String, default: null },
+    fileType: { type: String, enum: ["pdf", "image"], default: "pdf" },
     contractType: { type: String, default: "Unknown" },
     parties: [String],
     keyDates: [{ label: String, date: String }],

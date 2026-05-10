@@ -35,6 +35,7 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
       'text/plain': ['.txt'],
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'image/*': []
     },
     maxFiles: 1,
     disabled: uploading,
@@ -84,20 +85,32 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
       setProgress(50);
       setAnalysisStatus('analyzing');
 
+      // Build analyze request based on file type
+      const analyzeBody = {
+        filename: uploadData.filename,
+        language: language,
+        userType: userType,
+      };
+
+      // Add appropriate data based on file type
+      if (uploadData.fileType === 'image') {
+        // Image: send URL
+        analyzeBody.imageUrl = uploadData.imageUrl;
+        analyzeBody.imageKitFileId = uploadData.imageKitFileId;
+      } else {
+        // PDF: send text
+        analyzeBody.contractText = uploadData.contractText;
+        analyzeBody.charCount = uploadData.charCount;
+        analyzeBody.pdfBuffer = uploadData.pdfBuffer;
+      }
+
       const analyzeResponse = await fetch(`${import.meta.env.VITE_API_URL}/ai/analyze`, {
         method: 'POST',
         headers: {
           ...headers,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          contractText: uploadData.contractText,
-          filename: uploadData.filename,
-          charCount: uploadData.charCount,
-          language: language,
-          userType: userType,
-          pdfBuffer: uploadData.pdfBuffer
-        })
+        body: JSON.stringify(analyzeBody)
       });
 
       clearInterval(progressInterval);
@@ -114,7 +127,10 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
           fileName: uploadData.filename,
           documentId: uploadData.documentId,
           isUnauthenticated: !user,
-          contractText: uploadData.contractText
+          contractText: uploadData.contractType === 'image' ? null : uploadData.contractText,
+          imageUrl: uploadData.imageUrl || null,
+          imageKitFileId: uploadData.imageKitFileId || null,
+          fileType: uploadData.fileType
         };
         localStorage.setItem('lastAnalysis', JSON.stringify(resultData));
         setUploading(false);

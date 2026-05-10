@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middlewares/upload.middleware");
+const uploadMiddleware = require("../middlewares/upload.middleware");
 const { uploadPDF, getUserDocuments, getDocumentById, downloadAnalysisPDF } = require("../controllers/upload.controller");
 const { authenticate } = require("../middlewares/auth.middleware");
 
-// POST /api/upload - Upload and parse PDF
-router.post("/", upload.single("contract"), uploadPDF);
+// POST /api/upload - Upload and parse PDF or image
+// Accepts files from: "contract", "file", "image", "document", "upload" field names
+router.post("/", uploadMiddleware, uploadPDF);
 
 // POST /api/upload/download-pdf - Download analysis as PDF
 router.post("/download-pdf", downloadAnalysisPDF);

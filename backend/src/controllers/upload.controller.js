@@ -1,31 +1,70 @@
 const { extractAndClean } = require("../services/parser.service");
 const { generateAnalysisPDF } = require("../services/pdf.service");
+const { uploadImage } = require("../services/imagekit.service");
 const Document = require("../models/document.model");
 
 /**
  * POST /api/upload
- * Accepts a PDF, extracts text, returns it for analysis with PDF buffer
+ * Accepts a PDF or image file, processes it, returns data for analysis
+ * For PDF: extracts text
+ * For Image: uploads to ImageKit using multer buffer
  */
 const uploadPDF = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, error: "No PDF file uploaded." });
+      return res.status(400).json({ success: false, error: "No file uploaded." });
     }
 
-    const { buffer, originalname } = req.file;
-    const { rawText, cleanedText, charCount } = await extractAndClean(buffer);
-    
-    // Convert PDF buffer to base64 for sending to frontend
-    const pdfBase64 = buffer.toString("base64");
-    
-    res.status(200).json({
-      success: true,
-      filename: originalname,
-      charCount,
-      contractText: cleanedText,
-      pdfBuffer: pdfBase64,
-      message: "PDF parsed successfully. Ready for analysis.",
-    });
+    const { buffer, originalname, mimetype } = req.file;
+    const isPDF = mimetype === "application/pdf";
+    const isImage = mimetype.startsWith("image/");
+
+    if (!isPDF && !isImage) {
+      return res.status(400).json({
+        success: false,
+        error: "Only PDF and image files are supported",
+      });
+    }
+
+    // Handle PDF files
+    if (isPDF) {
+      const { rawText, cleanedText, charCount } = await extractAndClean(buffer);
+      const pdfBase64 = buffer.toString("base64");
+
+      return res.status(200).json({
+        success: true,
+        filename: originalname,
+        charCount,
+        contractText: cleanedText,
+        pdfBuffer: pdfBase64,
+        fileType: "pdf",
+        message: "PDF parsed successfully. Ready for analysis.",
+      });
+    }
+
+    // Handle image files
+    if (isImage) {
+      const uploadResult = await uploadImage(buffer, originalname, "legal-guardian/contracts");
+
+      if (!uploadResult.success) {
+        return res.status(500).json({
+          success: false,
+          error: "Failed to upload image: " + uploadResult.error,
+        });
+      }
+
+      // For images, we'll send the URL to frontend for display
+      // OCR or text extraction from images can be done separately if needed
+      return res.status(200).json({
+        success: true,
+        filename: originalname,
+        imageUrl: uploadResult.imageUrl,
+        imageKitFileId: uploadResult.fileId,
+        imageKitThumbnailUrl: uploadResult.thumbnailUrl,
+        fileType: "image",
+        message: "Image uploaded successfully. Ready for analysis.",
+      });
+    }
   } catch (error) {
     next(error);
   }

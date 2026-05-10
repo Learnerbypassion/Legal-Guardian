@@ -1,17 +1,19 @@
-const { analyzeContract } = require("../services/ai.service");
+const { analyzeContract, analyzeImage } = require("../services/ai.service");
 const { calculateRisk } = require("../services/risk.service");
 const { formatAnalysis } = require("../services/summary.service");
 const Document = require("../models/document.model");
 
 /**
  * POST /api/analyze
- * Body: { contractText, filename, userType, language, pdfBuffer }
- * Analyzes contract, calculates risk, saves to DB with PDF
+ * Body: { contractText OR imageUrl, filename, userType, language, charCount, pdfBuffer, imageKitFileId }
+ * Analyzes contract (text or image), calculates risk, saves to DB
  */
 const analyze = async (req, res, next) => {
   try {
     const {
       contractText,
+      imageUrl,
+      imageKitFileId,
       filename = "contract.pdf",
       userType = "general",
       language = "English",
@@ -19,20 +21,49 @@ const analyze = async (req, res, next) => {
       pdfBuffer = null,
     } = req.body;
 
-    if (!contractText || contractText.trim().length < 50) {
-      return res.status(400).json({ success: false, error: "Contract text is too short or missing." });
+    console.log("📨 Analyze request received:", {
+      hasContractText: !!contractText,
+      hasImageUrl: !!imageUrl,
+      filename,
+      userType,
+      language,
+    });
+
+    // Check if we have either contract text or image URL
+    if (!contractText && !imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: "Either contractText or imageUrl is required.",
+      });
     }
 
-    // 1. AI Analysis
-    const aiResult = await analyzeContract(contractText, userType, language);
+    let aiResult;
+    let finalCharCount = charCount;
+
+    // Analyze based on input type
+    if (contractText) {
+      // PDF/Text analysis
+      if (contractText.trim().length < 50) {
+        return res.status(400).json({ success: false, error: "Contract text is too short or missing." });
+      }
+      console.log("📄 Analyzing contract text");
+      aiResult = await analyzeContract(contractText, userType, language);
+      finalCharCount = contractText.length;
+    } else if (imageUrl) {
+      // Image analysis
+      console.log("🖼️ Analyzing contract image:", imageUrl);
+      aiResult = await analyzeImage(imageUrl, userType, language);
+      // For images, we estimate character count from extracted content
+      finalCharCount = 0; // Will be filled based on extracted content if available
+    }
 
     // 2. Risk Score
-    const riskData = calculateRisk(aiResult.cons || [], contractText);
+    const riskData = calculateRisk(aiResult.cons || [], contractText || "");
 
     // 3. Format Response
     const formatted = formatAnalysis(aiResult, riskData, {
       filename,
-      charCount,
+      charCount: finalCharCount,
       language,
       userType,
     });
@@ -49,8 +80,11 @@ const analyze = async (req, res, next) => {
 
       await Document.create({
         filename,
-        contractText,
+        contractText: contractText || null,
         pdfBuffer: pdfData,
+        imageUrl: imageUrl || null,
+        imageKitFileId: imageKitFileId || null,
+        fileType: imageUrl ? "image" : "pdf",
         contractType: formatted.contractType,
         parties: formatted.parties,
         keyDates: formatted.keyDates,
@@ -62,7 +96,7 @@ const analyze = async (req, res, next) => {
         riskScore: formatted.riskScore,
         language,
         userType,
-        charCount,
+        charCount: finalCharCount,
         userId: req.userId || null,
       });
     } catch (dbError) {
