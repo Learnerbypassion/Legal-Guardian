@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HistoryTab } from '../components/HistoryTab';
@@ -8,9 +8,24 @@ import { LINKS } from '../constants/links';
 export const History = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const quickLinksRef = useRef(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showQuickLinks, setShowQuickLinks] = useState(false);
   const [showMobileQuickLinks, setShowMobileQuickLinks] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (quickLinksRef.current && !quickLinksRef.current.contains(event.target)) {
+        setShowQuickLinks(false);
+      }
+    };
+
+    if (showQuickLinks) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showQuickLinks]);
 
   const handleLogout = async () => {
     await logout();
@@ -58,7 +73,7 @@ export const History = () => {
             </button>
 
             {/* Quick Links */}
-            <div className="relative">
+            <div className="relative" ref={quickLinksRef}>
               <button
                 onClick={() => setShowQuickLinks(!showQuickLinks)}
                 className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm flex items-center gap-1"
@@ -92,7 +107,7 @@ export const History = () => {
 
                     <div>
                       <p className="text-sm font-bold text-[#1B2F4E]">
-                        Visit Website
+                        Github Repository
                       </p>
                       <p className="text-xs text-[#64748B]">
                         Go to official site
@@ -120,7 +135,7 @@ export const History = () => {
 
                     <div>
                       <p className="text-sm font-bold text-[#1B2F4E]">
-                        App Repository
+                        App Link
                       </p>
                       <p className="text-xs text-[#64748B]">
                         Source code for app
@@ -263,7 +278,7 @@ export const History = () => {
                     <div className="flex items-center gap-2">
                       <Globe size={16} className="text-[#1B2F4E]" />
                       <span className="text-sm text-[#1B2F4E]">
-                        Visit Website
+                        Github Repository
                       </span>
                     </div>
 
@@ -279,7 +294,7 @@ export const History = () => {
                     <div className="flex items-center gap-2">
                       <GitBranch size={16} className="text-[#1B2F4E]" />
                       <span className="text-sm text-[#1B2F4E]">
-                        App Repository
+                        App Link
                       </span>
                     </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ChatBox from '../components/ChatBox';
@@ -14,6 +14,7 @@ export const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
+  const quickLinksRef = useRef(null);
 
   let resultData = location.state;
   if (!resultData) {
@@ -78,6 +79,20 @@ export const Result = () => {
       sessionStorage.setItem('saveModalDismissed', 'true');
     }
   }, [result, isUnauthenticated, user, authLoading]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (quickLinksRef.current && !quickLinksRef.current.contains(event.target)) {
+        setShowQuickLinks(false);
+      }
+    };
+
+    if (showQuickLinks) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showQuickLinks]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -185,7 +200,7 @@ export const Result = () => {
             </button>
 
             {/* Quick Links */}
-            <div className="relative">
+            <div className="relative" ref={quickLinksRef}>
               <button
                 onClick={() => setShowQuickLinks(!showQuickLinks)}
                 className="px-3 py-1.5 border border-[#CBD2DC] text-[#3D4F66] rounded-lg hover:bg-gray-50 transition font-medium text-sm flex items-center gap-1"
@@ -219,7 +234,7 @@ export const Result = () => {
 
                     <div>
                       <p className="text-sm font-bold text-[#1B2F4E]">
-                        Visit Website
+                        Github Repository
                       </p>
                       <p className="text-xs text-[#64748B]">
                         Go to official site
@@ -247,7 +262,7 @@ export const Result = () => {
 
                     <div>
                       <p className="text-sm font-bold text-[#1B2F4E]">
-                        App Repository
+                        App Link
                       </p>
                       <p className="text-xs text-[#64748B]">
                         Source code for app
@@ -390,7 +405,7 @@ export const Result = () => {
                     <div className="flex items-center gap-2">
                       <Globe size={16} className="text-[#1B2F4E]" />
                       <span className="text-sm text-[#1B2F4E]">
-                        Visit Website
+                        Github Repository
                       </span>
                     </div>
 
@@ -406,7 +421,7 @@ export const Result = () => {
                     <div className="flex items-center gap-2">
                       <GitBranch size={16} className="text-[#1B2F4E]" />
                       <span className="text-sm text-[#1B2F4E]">
-                        App Repository
+                        App Link
                       </span>
                     </div>
 
