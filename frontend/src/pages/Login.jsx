@@ -44,11 +44,11 @@ export const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-[#1B2F4E] flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">LG</span>
+            <img src="../logo.png" className="w-full h-full object-contain rounded-lg" />
           </div>
         </div>
         <h2 className="text-center text-3xl font-extrabold text-[#1B2F4E]">
-          Legal-Guardian
+          Legal Guardian
         </h2>
         <p className="mt-2 text-center text-sm text-[#3D4F66] font-medium">
           AI-Powered Document Analysis
