@@ -393,7 +393,7 @@ export const Home = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-bold text-[#1B2F4E] mb-2">Upload Documents</h3>
-                <p className="text-[#3D4F66] text-sm leading-relaxed">Drag and drop or browse to upload PDF, TXT, or Word documents</p>
+                <p className="text-[#3D4F66] text-sm leading-relaxed">Drag and drop or browse to upload PDF, TXT, JPG, PNG files</p>
               </div>
 
               <div className="bg-white rounded-xl shadow-md p-8 border border-[#CBD2DC] hover:border-[#8A6C2A] transition-all">
@@ -473,15 +473,15 @@ export const Home = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-[#8A6C2A]"></div>
-                    <span className="font-semibold text-sm">MS Word (.docx)</span>
+                    <span className="font-semibold text-sm">Images (.jpg, .png)</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-[#8A6C2A]"></div>
-                    <span className="font-semibold text-sm">Rich Text (.rtf)</span>
+                    <span className="font-semibold text-sm">MS Word (.docx)</span>
                   </div>
                 </div>
                 <p className="mt-10 text-xs text-white/60 leading-relaxed italic">
-                  All files are processed using AES-256 encryption. We do not store your documents permanently without your explicit permission.
+                  We do not store your documents permanently without your explicit permission.
                 </p>
               </div>
             </div>

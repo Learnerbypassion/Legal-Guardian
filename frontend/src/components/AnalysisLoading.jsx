@@ -88,14 +88,6 @@ export const AnalysisLoading = ({ status = 'reading' }) => {
           })}
         </div>
 
-        {/* Security Badge - Refined and Professional */}
-        <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#1B2F4E] text-[#FAF3E4] rounded-full shadow-lg border border-[#8A6C2A]/30">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-          <span className="text-[10px] font-black tracking-[0.2em] uppercase">AES-256 Encrypted Protocol</span>
-        </div>
-
         {/* Aesthetic Accents */}
         <div className="absolute bottom-10 left-10 w-2 h-2 bg-[#8A6C2A] rounded-full animate-ping"></div>
       </div>
