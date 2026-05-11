@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronDown, ChevronRight, Globe, GitBranch, Puzzle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, GitBranch, Puzzle, MessageCircle, Inbox, Clock, Circle } from 'lucide-react';
 import { LINKS } from '../constants/links';
+import { getConversations } from '../services/api';
+import LiveChatPanel from '../components/LiveChatPanel';
 
 /* ── Small UI helpers ── */
 const Label = ({ children }) => (
@@ -43,6 +45,12 @@ export const Profile = () => {
   const [emailVerifying, setEmailVerifying] = React.useState(false);
   const [emailOtp, setEmailOtp] = React.useState('');
 
+  // Live chat state
+  const [conversations, setConversations] = useState([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [chatPartner, setChatPartner] = useState(null);
+  const [showLiveChat, setShowLiveChat] = useState(false);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,6 +64,41 @@ export const Profile = () => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showQuickLinks]);
+
+  // Load conversations for professionals
+  useEffect(() => {
+    if (user?.role === 'professional') {
+      loadConversations();
+    }
+  }, [user]);
+
+  const loadConversations = async () => {
+    setLoadingConversations(true);
+    try {
+      const res = await getConversations();
+      if (res.success) {
+        setConversations(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load conversations:', err);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  const formatTimeAgo = (dateStr) => {
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diffMs = now - d;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHrs = Math.floor(diffMin / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -593,7 +636,102 @@ export const Profile = () => {
           </div>
         )}
 
+        {/* ── CLIENT MESSAGES SECTION (professionals only) ── */}
+        {user.role === 'professional' && (
+          <div className="bg-white rounded-2xl shadow border border-[#CBD2DC] p-8 mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[#1B2F4E] flex items-center gap-2">
+                <span className="p-2 bg-[#FAF3E4] rounded-lg">
+                  <Inbox size={20} className="text-[#8A6C2A]" />
+                </span>
+                Client Messages
+              </h3>
+              <button
+                onClick={loadConversations}
+                disabled={loadingConversations}
+                className="px-4 py-2 text-[#8A6C2A] font-semibold border border-[#C9A84C] rounded-lg hover:bg-[#FAF3E4] transition text-sm disabled:opacity-50"
+              >
+                {loadingConversations ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
 
+            {loadingConversations ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#FAF3E4] border border-[#8A6C2A]/20 mb-4">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#8A6C2A] border-t-transparent" />
+                  </div>
+                  <p className="text-sm text-[#3D4F66] font-medium">Loading conversations...</p>
+                </div>
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] mb-4">
+                  <MessageCircle size={28} className="text-[#CBD2DC]" />
+                </div>
+                <p className="text-[#1B2F4E] font-bold text-base mb-1">No Messages Yet</p>
+                <p className="text-sm text-[#3D4F66] max-w-[300px]">
+                  When clients start live chats with you, their conversations will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {conversations.map((conv) => (
+                  <div
+                    key={conv.roomId}
+                    onClick={() => {
+                      setChatPartner(conv.partner);
+                      setShowLiveChat(true);
+                    }}
+                    className="flex items-center gap-4 p-4 rounded-xl border border-[#E2E8F0] hover:border-[#8A6C2A]/40 hover:bg-[#FEFCF6] cursor-pointer transition-all group"
+                  >
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-full bg-[#1B2F4E] flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <span className="text-white font-bold text-base">
+                        {conv.partner?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h4 className="text-sm font-bold text-[#1B2F4E] truncate">
+                          {conv.partner?.name || 'Unknown User'}
+                        </h4>
+                        {conv.unreadCount > 0 && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#8A6C2A] text-white text-[10px] font-bold flex-shrink-0">
+                            {conv.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#64748B] truncate">
+                        {conv.lastMessage}
+                      </p>
+                    </div>
+
+                    {/* Time + action */}
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className="text-[10px] text-[#94A3B8] font-medium flex items-center gap-1">
+                        <Clock size={10} />
+                        {formatTimeAgo(conv.lastMessageAt)}
+                      </span>
+                      <span className="text-xs text-[#8A6C2A] font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                        Reply <ChevronRight size={12} />
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Live Chat Panel */}
+        <LiveChatPanel
+          professional={chatPartner}
+          isOpen={showLiveChat}
+          onClose={() => { setShowLiveChat(false); setChatPartner(null); loadConversations(); }}
+        />
 
       </div>
     </div>
