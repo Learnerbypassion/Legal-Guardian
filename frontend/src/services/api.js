@@ -138,3 +138,22 @@ export const downloadAnalysisAsPDF = async (analysisData) => {
   });
   return response.data;
 };
+
+/**
+ * Get chat history with a specific user
+ * @param {string} recipientId - The other user's ID
+ * @param {number} page - Page number for pagination
+ */
+export const getChatHistory = async (recipientId, page = 1) => {
+  const { data } = await api.get(`/livechat/history/${recipientId}?page=${page}&limit=50`);
+  return data;
+};
+
+/**
+ * Get all conversations for the current user
+ */
+export const getConversations = async () => {
+  const { data } = await api.get('/livechat/conversations');
+  return data;
+};
+

@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ChatBox from '../components/ChatBox';
+import LiveChatPanel from '../components/LiveChatPanel';
 import { SaveHistoryModal } from '../components/SaveHistoryModal';
 import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
 import { getRecommendedProfessionals, contactProfessional, getDocumentById, downloadAnalysisAsPDF } from '../services/api';
-import { ClipboardList, CircleCheckBig, TriangleAlert, FileText, Briefcase, History, MessageSquareMore, File, ShieldAlert } from 'lucide-react';
+import { ClipboardList, CircleCheckBig, TriangleAlert, FileText, Briefcase, History, MessageSquareMore, File, ShieldAlert, MessageCircle } from 'lucide-react';
 import { ChevronDown, ChevronRight, Globe, GitBranch, Puzzle } from 'lucide-react';
 import { LINKS } from '../constants/links';
 
@@ -43,6 +44,8 @@ export const Result = () => {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [professionals, setProfessionals] = useState([]);
   const [contactedIds, setContactedIds] = useState({});
+  const [chatProfessional, setChatProfessional] = useState(null);
+  const [showLiveChat, setShowLiveChat] = useState(false);
 
   // Fetch document from DB if contractText is missing but documentId is available
   useEffect(() => {
@@ -646,14 +649,27 @@ export const Result = () => {
                         <p><strong>Exp:</strong> {prof.professionalDetails?.experience}</p>
                         <p><strong>Edu:</strong> {prof.professionalDetails?.education}</p>
                       </div>
-                      <button
-                        onClick={() => handleContact(prof._id)}
-                        disabled={contactedIds[prof._id] === 'Sent'}
-                        className={`w-full py-2.5 rounded-lg font-bold transition ${contactedIds[prof._id] === 'Sent' ? 'bg-green-100 text-green-700' : 'bg-[#1B2F4E] text-white hover:bg-[#8A6C2A]'
-                          }`}
-                      >
-                        {contactedIds[prof._id] === 'Sent' ? '✓ Message Sent' : 'Contact Expert'}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleContact(prof._id)}
+                          disabled={contactedIds[prof._id] === 'Sent'}
+                          className={`flex-1 py-2.5 rounded-lg font-bold transition ${contactedIds[prof._id] === 'Sent' ? 'bg-green-100 text-green-700' : 'bg-[#1B2F4E] text-white hover:bg-[#8A6C2A]'
+                            }`}
+                        >
+                          {contactedIds[prof._id] === 'Sent' ? '✓ Message Sent' : 'Contact Expert'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!user) { setShowAuthPrompt(true); return; }
+                            setChatProfessional(prof);
+                            setShowLiveChat(true);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF3E4] text-[#8A6C2A] border border-[#8A6C2A]/30 rounded-lg font-bold hover:bg-[#8A6C2A] hover:text-white transition-all group"
+                        >
+                          <MessageCircle size={16} className="group-hover:scale-110 transition-transform" />
+                          <span className="text-sm">Live Chat</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -732,6 +748,13 @@ export const Result = () => {
           onClose={() => { setShowSaveModal(false); sessionStorage.setItem('saveModalDismissed', 'true'); }}
           onSave={() => sessionStorage.setItem('pendingAnalysis', JSON.stringify({ result, fileName, documentId, timestamp: new Date().toISOString() }))}
           fileName={fileName}
+        />
+
+        {/* Live Chat Panel */}
+        <LiveChatPanel
+          professional={chatProfessional}
+          isOpen={showLiveChat}
+          onClose={() => { setShowLiveChat(false); setChatProfessional(null); }}
         />
       </main >
     </div >
