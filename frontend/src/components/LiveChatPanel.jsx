@@ -37,10 +37,12 @@ export default function LiveChatPanel({ professional, isOpen, onClose }) {
 
     const newSocket = io(SOCKET_URL, {
       auth: { token },
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"],
+      upgrade: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     newSocket.on("connect", () => {
@@ -52,6 +54,9 @@ export default function LiveChatPanel({ professional, isOpen, onClose }) {
 
       // Check if professional is online
       newSocket.emit("check-online", { userIds: [professional._id] });
+
+      // Mark all existing unread messages from this professional as read
+      newSocket.emit("mark-read", { senderId: professional._id });
     });
 
     newSocket.on("disconnect", () => {
@@ -105,12 +110,13 @@ export default function LiveChatPanel({ professional, isOpen, onClose }) {
       if (userId === professional._id) setIsProfOnline(false);
     });
 
-    // Messages read
+    // Messages read — mark our sent messages as seen (double tick)
     newSocket.on("messages-read", () => {
       setMessages((prev) =>
-        prev.map((m) =>
-          m.senderId === user._id ? { ...m, read: true } : m
-        )
+        prev.map((m) => {
+          const isMine = m.senderId === user?._id || m.senderId === user?.id;
+          return isMine ? { ...m, read: true } : m;
+        })
       );
     });
 
@@ -135,6 +141,11 @@ export default function LiveChatPanel({ professional, isOpen, onClose }) {
         if (res.success) {
           setMessages(res.data);
           scrollToBottom();
+
+          // Mark unread messages from professional as read (if socket is ready)
+          if (socket?.connected) {
+            socket.emit("mark-read", { senderId: professional._id });
+          }
         }
       } catch (err) {
         console.error("Failed to load chat history:", err);

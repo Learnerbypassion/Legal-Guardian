@@ -10,6 +10,7 @@ const uploadRoutes = require("./routes/upload.routes");
 const aiRoutes = require("./routes/ai.routes");
 const chatRoutes = require("./routes/chat.routes");
 const professionalRoutes = require("./routes/professional.routes");
+const livechatRoutes = require("./routes/livechat.routes");
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/professionals", professionalRoutes);
+app.use("/api/livechat", livechatRoutes);
 
 // 404
 app.use((req, res) => {
