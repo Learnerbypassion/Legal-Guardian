@@ -20,11 +20,21 @@ const recommendProfessionals = async (req, res) => {
     const professionals = await User.find({
       role: "professional",
       "professionalDetails.profession": type,
-    }).select("name email phone professionalDetails");
+    }).select("name email phone professionalDetails profilePicture");
+
+    const { onlineUsers } = require("../socket");
+    const data = professionals.map((prof) => {
+      const profObj = prof.toObject();
+      const isOnline = onlineUsers ? (onlineUsers.has(prof._id.toString()) && onlineUsers.get(prof._id.toString()).size > 0) : false;
+      return {
+        ...profObj,
+        isOnline,
+      };
+    });
 
     res.status(200).json({
       success: true,
-      data: professionals,
+      data,
     });
   } catch (error) {
     console.error("❌ Recommend professionals error:", error.message);
@@ -104,7 +114,33 @@ const contactProfessional = async (req, res) => {
   }
 };
 
+const getProfessionalById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const User = require("../models/user.model");
+    const professional = await User.findOne({ _id: id }).select("name email phone role professionalDetails profilePicture");
+    if (!professional) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    
+    const { onlineUsers } = require("../socket");
+    const isOnline = onlineUsers ? (onlineUsers.has(id.toString()) && onlineUsers.get(id.toString()).size > 0) : false;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...professional.toObject(),
+        isOnline,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Get professional by ID error:", error.message);
+    res.status(500).json({ success: false, error: "Failed to fetch professional details" });
+  }
+};
+
 module.exports = {
   recommendProfessionals,
   contactProfessional,
+  getProfessionalById,
 };

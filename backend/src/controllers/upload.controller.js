@@ -90,7 +90,7 @@ const getUserDocuments = async (req, res, next) => {
     const documents = await Document.find({ userId })
       .sort({ createdAt: -1 })
       .select(
-        "_id filename contractText createdAt summary pros cons highlightedClauses overallAdvice riskScore contractType"
+        "_id filename contractText createdAt summary pros cons highlightedClauses overallAdvice riskScore contractType language"
       );
 
     res.status(200).json({

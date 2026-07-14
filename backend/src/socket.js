@@ -99,15 +99,62 @@ const initSocket = (httpServer) => {
     });
 
     // ── send-message ──────────────────────────────────────────────
-    socket.on("send-message", async ({ recipientId, message }) => {
-      if (!recipientId || !message?.trim()) return;
+    socket.on("send-message", async ({ recipientId, message, messageType = "text", documentId = null, analysisContext = null }) => {
+      // Validate recipient and sender
+      if (!recipientId) {
+        return socket.emit("message-error", { error: "Recipient ID is required" });
+      }
+      if (userId === recipientId) {
+        return socket.emit("message-error", { error: "You cannot message yourself" });
+      }
+
+      // Validate message content
+      const cleanMessage = message?.trim();
+      const isText = messageType === "text";
+      
+      if (isText && !cleanMessage) {
+        return socket.emit("message-error", { error: "Message content cannot be empty" });
+      }
+      if (cleanMessage && cleanMessage.length > 5000) {
+        return socket.emit("message-error", { error: "Message is too long (max 5000 characters)" });
+      }
 
       try {
+        const sender = await User.findById(userId);
+        const recipient = await User.findById(recipientId);
+
+        if (!sender) {
+          return socket.emit("message-error", { error: "Sender account not found" });
+        }
+        if (!recipient) {
+          return socket.emit("message-error", { error: "Recipient account not found" });
+        }
+
+        // Validate roles: users can only message professionals, professionals can only message users
+        if (sender.role === "user" && recipient.role !== "professional") {
+          return socket.emit("message-error", { error: "Recipient must be a professional" });
+        }
+
+        // Validate document ownership if sharing analysis context
+        if (messageType === "analysis_context") {
+          if (!documentId) {
+            return socket.emit("message-error", { error: "Document ID is required for sharing analysis context" });
+          }
+          const Document = require("./models/document.model");
+          const document = await Document.findOne({ _id: documentId, userId });
+          if (!document) {
+            return socket.emit("message-error", { error: "Invalid document ID or unauthorized access" });
+          }
+        }
+
         // Save to database
         const newMessage = await Message.create({
           senderId: userId,
           recipientId,
-          message: message.trim(),
+          message: isText ? cleanMessage : "Shared an analysis context card",
+          messageType,
+          documentId,
+          analysisContext,
         });
 
         const msgData = {
@@ -115,6 +162,9 @@ const initSocket = (httpServer) => {
           senderId: userId,
           recipientId,
           message: newMessage.message,
+          messageType: newMessage.messageType,
+          documentId: newMessage.documentId,
+          analysisContext: newMessage.analysisContext,
           read: false,
           createdAt: newMessage.createdAt,
         };
@@ -135,7 +185,7 @@ const initSocket = (httpServer) => {
         }
       } catch (err) {
         console.error("Error saving message:", err);
-        socket.emit("message-error", { error: "Failed to send message" });
+        socket.emit("message-error", { error: "Failed to send message due to a server error" });
       }
     });
 
@@ -219,4 +269,4 @@ const initSocket = (httpServer) => {
   return io;
 };
 
-module.exports = { initSocket };
+module.exports = { initSocket, onlineUsers };

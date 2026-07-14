@@ -23,6 +23,31 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    messageType: {
+      type: String,
+      enum: ["text", "analysis_context", "system"],
+      default: "text",
+    },
+    documentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Document",
+      default: null,
+    },
+    analysisContext: {
+      fileName: String,
+      documentType: String,
+      riskLevel: String,
+      summary: [String],
+      flaggedClauses: [
+        {
+          title: String,
+          text: String,
+          explanation: String,
+          severity: String,
+        }
+      ],
+      language: String,
+    },
   },
   { timestamps: true }
 );

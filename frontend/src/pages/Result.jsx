@@ -6,6 +6,7 @@ import LiveChatPanel from '../components/LiveChatPanel';
 import { SaveHistoryModal } from '../components/SaveHistoryModal';
 import { HistoryTab } from '../components/HistoryTab';
 import RiskScoreCircle from '../components/RiskScoreCircle';
+import SpeakOutLoud from '../components/SpeakOutLoud';
 import { getRecommendedProfessionals, contactProfessional, getDocumentById, downloadAnalysisAsPDF } from '../services/api';
 import { ClipboardList, CircleCheckBig, TriangleAlert, FileText, Briefcase, History, MessageSquareMore, File, ShieldAlert, MessageCircle } from 'lucide-react';
 import { ChevronDown, ChevronRight, Globe, GitBranch, Puzzle } from 'lucide-react';
@@ -33,7 +34,7 @@ export const Result = () => {
     }
   }
 
-  const { result, documentId, fileName, isUnauthenticated, contractText } = resultData || {};
+  const { result, documentId, fileName, isUnauthenticated, contractText, language: analysisLanguage } = resultData || {};
   const [resolvedContractText, setResolvedContractText] = useState(contractText || '');
   const [loadingDoc, setLoadingDoc] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
@@ -524,6 +525,9 @@ export const Result = () => {
             </div>
           </div>
         </div>
+
+        {/* Speak Out Loud */}
+        <SpeakOutLoud result={result} language={analysisLanguage} />
 
         {/* Tabs */}
         {/* Tabs */}

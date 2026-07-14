@@ -17,6 +17,11 @@ const getChatHistory = async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid recipient ID" });
     }
 
+    const recipientExists = await User.exists({ _id: recipientId });
+    if (!recipientExists) {
+      return res.status(404).json({ success: false, error: "Recipient not found" });
+    }
+
     const skip = (page - 1) * limit;
 
     const messages = await Message.find({

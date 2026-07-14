@@ -54,6 +54,7 @@ export const HistoryTab = () => {
         documentId: doc._id,
         fileName: doc.filename,
         contractText: doc.contractText,
+        language: doc.language,
       }
     });
   };

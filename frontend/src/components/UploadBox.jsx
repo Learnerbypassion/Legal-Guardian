@@ -130,7 +130,8 @@ export const UploadBox = ({ uploading, setUploading, analysisStatus, setAnalysis
           contractText: uploadData.contractType === 'image' ? null : uploadData.contractText,
           imageUrl: uploadData.imageUrl || null,
           imageKitFileId: uploadData.imageKitFileId || null,
-          fileType: uploadData.fileType
+          fileType: uploadData.fileType,
+          language: language,
         };
         localStorage.setItem('lastAnalysis', JSON.stringify(resultData));
         setUploading(false);
