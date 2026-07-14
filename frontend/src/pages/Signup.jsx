@@ -675,7 +675,7 @@ export const Signup = () => {
               </div>
 
               <div className="flex justify-center">
-                <div id="google-signup-btn" className="w-full"></div>
+                <div id="google-signup-btn" className="flex justify-center w-full"></div>
               </div>
             </>
           )}

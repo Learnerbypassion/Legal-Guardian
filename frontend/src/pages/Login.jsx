@@ -220,7 +220,7 @@ export const Login = () => {
 
             {/* Google button container */}
             <div className="mt-4 flex justify-center">
-              <div id="google-signin-btn" className="w-full"></div>
+              <div id="google-signin-btn" className="flex justify-center w-full"></div>
             </div>
           </div>
 
