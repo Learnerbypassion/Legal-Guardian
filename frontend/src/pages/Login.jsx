@@ -30,7 +30,7 @@ export const Login = () => {
         });
         window.google.accounts.id.renderButton(
           document.getElementById('google-signin-btn'),
-          { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
+          { theme: 'outline', size: 'large', text: 'signin_with' }
         );
       }
     };

@@ -68,7 +68,7 @@ export const Signup = () => {
         });
         window.google.accounts.id.renderButton(
           document.getElementById('google-signup-btn'),
-          { theme: 'outline', size: 'large', width: '100%', text: 'signup_with' }
+          { theme: 'outline', size: 'large', text: 'signup_with' }
         );
       }
     };
