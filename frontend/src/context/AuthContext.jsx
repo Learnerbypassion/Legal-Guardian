@@ -112,10 +112,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (phone, password) => {
+  const login = async (identifier, password) => {
     try {
       setError(null);
-      const response = await api.post('/auth/login', { phone, password });
+      const response = await api.post('/auth/login', { identifier, password });
       const { token: newToken, user: userData } = response.data.data;
       Cookies.set('token', newToken, { expires: 7 });
       setToken(newToken);
@@ -123,6 +123,50 @@ export const AuthProvider = ({ children }) => {
       return response.data.data;
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Login failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const registerEmail = async (email, password, name, role) => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/register-email', { email, password, name, role });
+      return response.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Email registration failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const verifyEmailSignup = async (userId, otp) => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/verify-email-signup', { userId, otp });
+      const { token: newToken, user: userData } = response.data.data;
+      Cookies.set('token', newToken, { expires: 7 });
+      setToken(newToken);
+      setUser(userData);
+      return response.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Email verification failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const loginWithGoogle = async (idToken) => {
+    try {
+      setError(null);
+      const response = await api.post('/auth/google-login', { idToken });
+      const { token: newToken, user: userData } = response.data.data;
+      Cookies.set('token', newToken, { expires: 7 });
+      setToken(newToken);
+      setUser(userData);
+      return response.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Google login failed';
       setError(errorMsg);
       throw new Error(errorMsg);
     }
@@ -158,6 +202,9 @@ export const AuthProvider = ({ children }) => {
       verifyEmailOTP,
       resendOTP,
       login,
+      registerEmail,
+      verifyEmailSignup,
+      loginWithGoogle,
       logout,
       setError
     }}>
