@@ -5,7 +5,7 @@
  */
 export const getRiskColor = (score) => {
   if (score <= 3) return "#10B981"; // Professional Emerald
-  if (score <= 6) return "#D4AF37"; // LegalLens Gold
+  if (score <= 6) return "#D4AF37"; // Legal Guardian Gold
   return "#B91C1C"; // Crimson Alert
 };
 

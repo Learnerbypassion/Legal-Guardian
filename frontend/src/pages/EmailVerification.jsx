@@ -121,7 +121,7 @@ export const EmailVerification = () => {
           <div className="text-center mb-2">
             /* Text changed to Gold accent */
             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8A6C2A] to-[#D4AF37] mb-2">
-              LegalLens
+              Legal Guardian
             </h1>
             <p className="text-gray-400">AI-Powered Document Analysis</p>
           </div>

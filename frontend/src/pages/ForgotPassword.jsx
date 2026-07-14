@@ -120,7 +120,7 @@ export const ForgotPassword = () => {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8A6C2A] to-[#D4AF37] mb-2">
-            LegalLens
+            Legal Guardian
           </h1>
           <p className="text-gray-400">Reset Your Security Credentials</p>
         </div>
